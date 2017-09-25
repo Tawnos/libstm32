@@ -5,24 +5,40 @@
 
 namespace cmdc0de {
 
-class StateBase;
+/*
+ *	@autor cmdc0de
+ *	Usage:  Holds run time context information from the application, Current time thorugh the main loop, maybe some performance information
+ *	Or anything else the library already knows about.
+ */
+class RunTimeContext {
+public:
+private:
+	uint32_t CurrentLoop;
 
-struct ReturnStateContext {
-	ReturnStateContext(StateBase *next, const ErrorType &er) :
-			NextMenuToRun(next), Err(er) {
-	}
-	ReturnStateContext(StateBase *n) :
-			NextMenuToRun(n), Err() {
-	}
-	StateBase *NextMenuToRun;
-	ErrorType Err;
 };
 
+/*
+ * @author: cmdc0de
+ *
+ * Usage:  Base class for the program state, any runtime information will need to be passed to the construction of the state
+ * 	I did not want to template this class so I decided against passing some template parameter into the Run function.  Normally this will
+ * 	hold references to the attached devices (LCD, Sensors, etc).
+ */
 class StateBase {
 public:
+	struct ReturnStateContext {
+		ReturnStateContext(StateBase *next, const ErrorType &er) :
+				NextMenuToRun(next), Err(er) {
+		}
+		ReturnStateContext(StateBase *n) :
+				NextMenuToRun(n), Err() {
+		}
+		StateBase *NextMenuToRun;
+		ErrorType Err;
+	};
+public:
 	StateBase();
-	template<typename RunContext>
-	ReturnStateContext run(RunContext &rc);
+	ReturnStateContext run();
 	uint32_t timeInState();
 	ErrorType shutdown();
 	virtual ~StateBase();
@@ -30,8 +46,8 @@ protected:
 	static const uint32_t INIT_BIT = 0x01;
 	static const uint32_t DONT_RESET = 0x02;
 	static const uint32_t SHIFT_FROM_BASE = 8;
-	template<typename RunContext> virtual ErrorType onInit(RunContext &rc)=0;
-	template<typename RunContext> virtual ReturnStateContext onRun(RunContext &rc)=0;
+	virtual ErrorType onInit()=0;
+	virtual ReturnStateContext onRun()=0;
 	virtual ErrorType onShutdown()=0;
 	void setState(uint32_t n) {
 		StateData |= n;
@@ -55,39 +71,12 @@ protected:
 		return TimesRunCalledSinceLastReset;
 	}
 private:
-	template<typename RunContext> ErrorType init(RunContext &rc);
+	ErrorType init();
 private:
 	uint32_t StateData :8;
 	uint32_t TimesRunCalledAllTime :24;
 	uint32_t TimesRunCalledSinceLastReset;
 	uint32_t StateStartTime;
-};
-
-//template<typename RunContext, int MAX_MESSAGE_SIZE = 64>
-class DisplayMessageState: public StateBase {
-public:
-	static const uint16_t MAX_MESSAGE_SIZE = 64;
-public:
-	DisplayMessageState(uint16_t timeInState, StateBase *nextState);
-	virtual ~DisplayMessageState();
-	void setMessage(const char *msg);
-	void setTimeInState(uint16_t t) {
-		TimeInState = t;
-	}
-	void setNextState(StateBase *b) {
-		NextState = b;
-	}
-	StateBase *getNextState() {
-		return NextState;
-	}
-protected:
-	template<typename RunContext> virtual ErrorType onInit(RunContext &rc);
-	template<typename RunContext> virtual ReturnStateContext onRun(RunContext &rc);
-	virtual ErrorType onShutdown();
-private:
-	char Message[MAX_MESSAGE_SIZE];
-	uint16_t TimeInState;
-	StateBase *NextState;
 };
 
 }

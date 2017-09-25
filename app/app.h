@@ -13,10 +13,11 @@ public:
 	ErrorType init();
 	ErrorType run();
 protected:
-	ErrorType onInit();
-	ErrorType onRun();
+	virtual ErrorType onInit()=0;
+	virtual ErrorType onRun()=0;
 	StateBase *getCurrentState() {return CurrentState;}
 	App();
+	virtual ~App() {}
 private:
 	StateBase *CurrentState;
 	uint32_t LastRunTime;

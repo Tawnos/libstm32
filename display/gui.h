@@ -10,6 +10,7 @@ namespace cmdc0de {
 //running line
 #define GUI_TickerSpeed 500
 #define GUI_TickerEndDelay 3
+
 class GUI_TickerData {
 public:
 	GUI_TickerData(const char * txt, uint8_t X, uint8_t Y, uint8_t W,
