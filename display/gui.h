@@ -11,9 +11,9 @@ namespace cmdc0de {
 #define GUI_TickerSpeed 500
 #define GUI_TickerEndDelay 3
 
-class GUI_TickerData {
+class GUITickerData {
 public:
-	GUI_TickerData(const char * txt, uint8_t X, uint8_t Y, uint8_t W,
+	GUITickerData(const char * txt, uint8_t X, uint8_t Y, uint8_t W,
 			uint8_t H);
 	const char *text;
 	uint8_t x, y, w, h, BorderSize, FontScalar;
@@ -21,21 +21,21 @@ public:
 	uint32_t startTick;
 };
 
-class GUI_ListItemData {
+class GUIListItemData {
 public:
-	GUI_ListItemData(uint8_t id1, const char *msg, bool scroll,
+	GUIListItemData(uint8_t id1, const char *msg, bool scroll,
 			uint16_t timeBetwenScrolls) :
 			id(id1), text(msg), Scrollable(scroll), TimeBetweenScroll(
 					timeBetwenScrolls), LastScrollTime(0), LastScrollPosition(0) {
 
 	}
-	GUI_ListItemData(uint8_t id, const char *msg) :
+	GUIListItemData(uint8_t id, const char *msg) :
 			Scrollable(0), TimeBetweenScroll(1000), LastScrollTime(0), LastScrollPosition(
 					0) {
 		this->id = id;
 		text = msg;
 	}
-	GUI_ListItemData() :
+	GUIListItemData() :
 			id(0), text(0), Scrollable(0), TimeBetweenScroll(1000), LastScrollTime(
 					0), LastScrollPosition(0) {
 	}
@@ -59,9 +59,9 @@ public:
 	}
 };
 
-class GUI_ListData {
+class GUIListData {
 public:
-	GUI_ListData(const char *h, GUI_ListItemData *is, uint8_t x, uint8_t y,
+	GUIListData(const char *h, GUIListItemData *is, uint8_t x, uint8_t y,
 			uint8_t w, uint8_t height, uint8_t si, uint8_t ic) {
 		header = h;
 		items = is;
@@ -73,7 +73,7 @@ public:
 		ItemsCount = ic;
 	}
 	const char* header; /*!< Header*/
-	GUI_ListItemData *items; /*!< Item's array*/
+	GUIListItemData *items; /*!< Item's array*/
 	uint16_t ItemsCount; /*!< Item's array*/
 	uint8_t x, y, w, h;
 	uint16_t selectedItem;
@@ -83,8 +83,8 @@ class GUI {
 public:
 	GUI(DisplayST7735 *display);
 	bool init();
-	void drawTicker(GUI_TickerData *dt);
-	uint8_t drawList(GUI_ListData* list) const;
+	void drawTicker(GUITickerData *dt);
+	uint8_t drawList(GUIListData* list) const;
 
 private:
 	DisplayST7735 *Display;

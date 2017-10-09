@@ -3,19 +3,19 @@
 using namespace cmdc0de;
 
 ErrorType::ErrorType() :
-		ErrorNumber(ErrorNum::NO_ERROR) {
+		FacilityNum(Facility::ERROR_FACILITY_GENERAL), ErrorNumber(NO_ERROR) {
 }
 
-ErrorType::ErrorType(ErrorNum en) :
-		ErrorNumber(en) {
+ErrorType::ErrorType(const Facility &f) : FacilityNum(f), ErrorNumber(NO_ERROR){
+
+}
+
+ErrorType::ErrorType(const Facility &f, const ErrorNum &en) : FacilityNum(f), ErrorNumber(en){
+
 }
 
 bool ErrorType::ok() {
-	return ErrorNumber == ErrorNum::NO_ERROR;
-}
-
-const char *ErrorType::getMessage() {
-	return "ErrorType:  TODO";
+	return ErrorNumber == NO_ERROR;
 }
 
 ErrorType::ErrorType(const ErrorType &r) {

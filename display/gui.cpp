@@ -2,7 +2,7 @@
 
 using namespace cmdc0de;
 
-void GUI_ListItemData::setShouldScroll() {
+void GUIListItemData::setShouldScroll() {
 	if (shouldScroll()) {
 		resetScrollable();
 	} else {
@@ -10,14 +10,14 @@ void GUI_ListItemData::setShouldScroll() {
 	}
 }
 
-bool GUI_ListItemData::shouldScroll() {
+bool GUIListItemData::shouldScroll() {
 	if (strlen(text) * 6 > 120) {
 		return true;
 	}
 	return false;
 }
 
-GUI_TickerData::GUI_TickerData(const char * txt, uint8_t X, uint8_t Y,
+GUITickerData::GUITickerData(const char * txt, uint8_t X, uint8_t Y,
 		uint8_t W, uint8_t H) :
 		text(txt), x(X), y(Y), w(W), h(H), BorderSize(1), FontScalar(1), bg(
 				RGBColor::BLACK), TextColor(RGBColor::WHITE), startTick(0) {
@@ -32,7 +32,7 @@ bool GUI::init() {
 	return true;
 }
 
-void GUI::drawTicker(GUI_TickerData *dt) {
+void GUI::drawTicker(GUITickerData *dt) {
 	uint8_t maxlen = (dt->w - dt->BorderSize * 2)
 			/ Display->getFont()->FontWidth, len = 0;
 	int shift = 0;
@@ -57,7 +57,7 @@ void GUI::drawTicker(GUI_TickerData *dt) {
 			dt->FontScalar, false);
 }
 
-const char *GUI_ListItemData::getScrollOffset() {
+const char *GUIListItemData::getScrollOffset() {
 	uint16_t offSet = 0;
 	if (Scrollable) {
 		if (LastScrollTime == 0) {
@@ -78,7 +78,7 @@ const char *GUI_ListItemData::getScrollOffset() {
 	return text + offSet;
 }
 
-uint8_t GUI::drawList(GUI_ListData* gui_CurList) const {
+uint8_t GUI::drawList(GUIListData* gui_CurList) const {
 	if (gui_CurList == 0)
 		return 0;
 

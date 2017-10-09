@@ -2,26 +2,28 @@
 #define ERROR_TYPE_H
 
 #include <stdint.h>
+#include "facility_types.h"
 
 namespace cmdc0de {
 
+
 class ErrorType {
 public:
-	enum ErrorNum {
-		NO_ERROR = 0, SPI_INIT_ERROR
-	};
+	typedef uint32_t ErrorNum;
+	static const uint32_t NO_ERROR = 0;
 public:
 	ErrorType();
-	ErrorType(ErrorNum en);
+	ErrorType(const Facility &f);
+	ErrorType(const Facility &f, const uint32_t &en);
 	ErrorType(const ErrorType &r);
 	bool ok();
 	ErrorType &operator=(const ErrorType &r);
 	uint8_t getError() {
 		return ErrorNumber;
 	}
-	const char *getMessage();
 private:
-	ErrorNum ErrorNumber;
+	uint32_t  FacilityNum:8;
+	uint32_t  ErrorNumber:16;
 };
 
 }

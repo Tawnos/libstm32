@@ -109,10 +109,10 @@ public:
 	class HardwareConfig {
 	public:
 		static SPI_HandleTypeDef *getSPI();
-		static PinConfig &getDataCmd();
-		static PinConfig &getCS();
-		static PinConfig &getBackLit();
-		static PinConfig &getReset();
+		static const PinConfig &getDataCmd();
+		static const PinConfig &getCS();
+		static const PinConfig &getBackLit();
+		static const PinConfig &getReset();
 	};
 	/*
 	 * Allows us to have different frame buffer types to make optimal use of memory
