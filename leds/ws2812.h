@@ -96,7 +96,7 @@ protected:
 class WS2818 {
 public:
 	WS2818(uint16_t LedPin, GPIO_TypeDef *ledPort, TIM_TypeDef *ledTimer,
-			DMA_Channel_TypeDef *ledDMAChannel, IRQn_Type irqt);
+			DMA_Channel_StreamTypeDef *ledDMAChannel, IRQn_Type irqt);
 	void init();
 	//void sendColors(uint8_t (*color)[3], uint16_t len);
 	bool sendColors(LedBuffer *ColorLeds, uint32_t timeOut);
@@ -113,7 +113,7 @@ private:
 	uint16_t LedPin;
 	GPIO_TypeDef *LedPort;
 	TIM_TypeDef *LedTimer;
-	DMA_Channel_TypeDef *LedDMAChannel;
+	DMA_Channel_StreamTypeDef *LedDMAChannel;
 	IRQn_Type Irqt;
 	int CurrentLed;
 	int TotalLeds;

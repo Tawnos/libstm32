@@ -56,7 +56,7 @@ static union {
 } LedDMA;
 
 cmdc0de::WS2818::WS2818(uint16_t ledPin, GPIO_TypeDef *ledPort, TIM_TypeDef *ledTimer,
-		DMA_Channel_TypeDef *ledDMAChannel, IRQn_Type irqt) :
+		DMA_Channel_StreamTypeDef *ledDMAChannel, IRQn_Type irqt) :
 		TIM_TimeBaseStructure(),
 				TIM_OCInitStructure(), GPIO_InitStructure(), DMA_InitStructure(),
 				LedPin(ledPin), LedPort(ledPort), LedTimer(ledTimer),
@@ -226,7 +226,11 @@ bool cmdc0de::WS2818::sendColors(LedBuffer *colorLeds, uint32_t timeOut) {
 			bzero(LedDMA.end + (24 * i), 24);
 	}
 
+#if defined (STM32F411xE)
+	LedDMAChannel->NDTR = sizeof(LedDMA.buffer); // load number of bytes to be transferred
+#else
 	LedDMAChannel->CNDTR = sizeof(LedDMA.buffer); // load number of bytes to be transferred
+#endif
 	/*
 	DMA_Cmd(LedDMAChannel, ENABLE); 			// enable DMA channel 2
 	TIM_Cmd(LedTimer, ENABLE);                      // Go!!!
