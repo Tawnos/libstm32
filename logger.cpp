@@ -1,5 +1,5 @@
 #include "logger.h"
-#include <diag/Trace.h>
+//#include <diag/Trace.h>
 #include <stdio.h>
 
 
@@ -12,7 +12,7 @@ LogManager *LogManager::mSelf = 0;
 LogManager &LogManager::get() {
 	if(0==mSelf) {
 		mSelf = new LogManager();
-		trace_initialize();
+		//trace_initialize();
 	}
 	return *mSelf;
 }
@@ -76,5 +76,5 @@ cmdc0de::STM32Logger::STM32Logger(LOG_LEVEL l) : Logger(l) {
 }
 
 void cmdc0de::STM32Logger::onPrintf(const char *msg, uint16_t size) {
-	trace_write (msg, (unsigned int)size);
+	//trace_write (msg, (unsigned int)size);
 }
