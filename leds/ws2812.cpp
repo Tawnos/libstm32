@@ -216,14 +216,14 @@ bool cmdc0de::WS2818::sendColors(LedBuffer *colorLeds, uint32_t timeOut) {
 		if (CurrentLed < TotalLeds)
 			fillLed(LedDMA.begin + (24 * i), ColorLeds->getLed(CurrentLed));
 		else
-			bzero(LedDMA.begin + (24 * i), 24);
+			memset(LedDMA.begin + (24 * i), 0, 24);
 	}
 
 	for (i = 0; (i < LED_PER_HALF) && (CurrentLed < TotalLeds + 2); i++, CurrentLed++) {
 		if (CurrentLed < TotalLeds)
 			fillLed(LedDMA.end + (24 * i), ColorLeds->getLed(CurrentLed));
 		else
-			bzero(LedDMA.end + (24 * i), 24);
+			memset(LedDMA.end + (24 * i), 0, 24);
 	}
 
 #if defined (STM32F411xE)

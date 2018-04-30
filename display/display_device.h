@@ -70,11 +70,20 @@ public:
 	};
 public:
 	DisplayDevice(uint16_t w, uint16_t h, ROTATION r);
-	~DisplayDevice();
+	virtual ~DisplayDevice();
 public:
 	uint16_t getWidth();
 	uint16_t getHeight();
 	ROTATION getRotation();
+	virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor &color)=0;
+	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color)=0;
+	virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color)=0;
+	virtual void fillScreen(const RGBColor &color)=0;
+	virtual void drawImage(const DCImage &dcImage)=0;
+	virtual uint32_t drawString(uint16_t xPos, uint16_t yPos, const char *pt)=0;
+	virtual uint32_t drawString(uint16_t xPos, uint16_t yPos, const char *pt, const RGBColor &textColor)=0;
+	virtual uint32_t drawString(uint16_t xPos, uint16_t yPos, const char *pt, const RGBColor &textColor, const RGBColor &bgColor, uint8_t size, bool lineWrap)=0;
+	virtual uint32_t drawStringOnLine(uint8_t line, const char *msg)=0;
 protected:
 private:
 	uint16_t Width;

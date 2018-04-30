@@ -18,6 +18,7 @@ protected:
 	StateBase *getCurrentState() {return CurrentState;}
 	App();
 	virtual ~App() {}
+	void setCurrentState(StateBase *cs) {CurrentState = cs;}
 private:
 	StateBase *CurrentState;
 	uint32_t LastRunTime;
