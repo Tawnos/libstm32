@@ -66,7 +66,7 @@ private:
 class DisplayDevice {
 public:
 	enum ROTATION {
-		PORTAIT = 0, LANDSCAPE = 1
+		PORTAIT_TOP_LEFT = 0, LANDSCAPE_TOP_LEFT = 1
 	};
 public:
 	DisplayDevice(uint16_t w, uint16_t h, ROTATION r);
@@ -75,6 +75,9 @@ public:
 	uint16_t getWidth();
 	uint16_t getHeight();
 	ROTATION getRotation();
+	void setRotation(ROTATION r, bool swapHeightWidth);
+	bool isTopToBotRefresh();
+	void setTopToBotRefresh(bool b);
 	virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor &color)=0;
 	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color)=0;
 	virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color)=0;
@@ -88,7 +91,8 @@ protected:
 private:
 	uint16_t Width;
 	uint16_t Height;
-	uint32_t Rotation :1;
+	uint32_t Rotation : 3;
+	uint32_t RefreshTopToBot : 1;
 };
 
 /*
@@ -132,7 +136,7 @@ public:
 	 */
 	class FrameBuf {
 	public:
-		FrameBuf();
+		FrameBuf(DisplayST7735 *d);
 		virtual ~FrameBuf() {
 		}
 		virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
@@ -157,28 +161,28 @@ public:
 		uint8_t getPixelFormat() const {
 			return PixelFormat;
 		}
-		void setMemoryAccessControl(uint8_t macctl);
+		void setMemoryAccessControl();
+		DisplayST7735 *getDisplay() {return Display;}
 	private:
+		DisplayST7735 *Display;
 		uint8_t PixelFormat;
 		uint8_t MemoryAccessControl;
 
 		friend class DisplayST7735;
 	};
 public:
-	///parameter to Memory Data access control command
 	enum MEMORY_DATA_ACCESS_CONTROL_BITS {
-		BOT_TO_TOP = 0b1000000 //Bottom to Top (When MADCTL B7=1), 0 = top to bottom
-		,
-		COLUMN_ORDER = 0b01000000 //right to left, 0 = left to right
-		,
-		ROW_COLUMN_ORDER = 0b00100000 //Row then column, 0 = column then row
-		,
-		VERTICAL_REFRESH_ORDER = 0b00010000 //lcd referesh bot to top, 0 = top to bot
-		,
-		RGB_ORDER = 0b00001000 // 1 = BGR, 0 = RGB
-		,
-		LCD_HORIZONTAL_REFERESH = 0b00000100 // 1 = right to left, 0 = left to right
+		MADCTL_MY= 0x80 //row address order
+		,MADCTL_MX =0x40 //column address order
+		,MADCTL_MV= 0x20 //Row column exchange
+		,MADCTL_VERTICAL_REFRESH_ORDER_BOT_TOP= 0x10
+		,MADCTL_VERTICAL_REFRESH_ORDER_TOP_BOT= 0x0
+		,MADCTL_RGB=0x00 //0 RGB, 1 BGR
+		,MADCTL_BGR=0x8
+		,MADCTL_HORIZONTAL_LEFT_RIGHT = 0x0
+		,MADCTL_HORIZONTAL_RIGHT_LEFT = 0x4
 	};
+
 	///enumeration of pixel formats for interface pixel command
 	enum PIXEL_FORMAT {
 		FORMAT_12_BIT = 0b011, FORMAT_16_BIT = 0b101, FORMAT_18_BIT = 0b110
@@ -517,16 +521,14 @@ public:
 	};
 public:
 	DisplayST7735(uint16_t w, uint16_t h, ROTATION r);
-	ErrorType init(uint8_t pf, uint8_t mac, const FontDef_t *defaultFont,
-			FrameBuf *);
+	ErrorType init(uint8_t pf, const FontDef_t *defaultFont, FrameBuf *);
 	virtual ~DisplayST7735();
-	bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor &color);
-	void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
-			const RGBColor &color);
-	void drawRec(int16_t x, int16_t y, int16_t w, int16_t h,
-			const RGBColor &color);
+	virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor &color);
+	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color);
+	virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color);
 	void fillScreen(const RGBColor &color);
 	void drawImage(const DCImage &dcImage);
+	void setMemoryAccessControl();
 	//////////////////////////////////////////
 	void setFrameBuffer(FrameBuf *fb) {
 		FB = fb;
@@ -535,6 +537,7 @@ public:
 		return FB;
 	}
 	void swap();
+	void reset();
 	///////////////////////////////////////////////////////
 	void drawVerticalLine(int16_t x, int16_t y, int16_t h);
 	void drawVerticalLine(int16_t x, int16_t y, int16_t h,
@@ -596,7 +599,6 @@ public:
 	virtual ~DrawBufferNoBuffer();
 	virtual void drawImage(const DCImage &dc);
 private:
-	DisplayST7735 *Display;
 	uint16_t *SPIBuffer;
 	uint8_t RowsForDrawBuffer;
 };
@@ -647,7 +649,46 @@ private:
 	uint16_t *SPIBuffer;
 	uint8_t RowsForDrawBuffer;
 	BitArray DrawBlocksChanged;
-	DisplayST7735 *Display;
+};
+
+
+/*
+ * @author cmdc0de
+ * @date 6/2/17
+ *
+ * 2 byte per pixel for backbuffer
+ * 5 bits Red, 6 Bits Green, 5 bits blue -
+ * for a 128x160 lcd you'll need 40,960 bytes for the buffer
+ */
+class DrawBuffer2D16BitColor16BitPerPixel1Buffer: public DisplayST7735::FrameBuf {
+public:
+	enum COLOR { // 2/2/2
+		BLACK = 0,
+		RED_MASK = 0x30,
+		GREEN_MASK = 0xC,
+		BLUE_MASK = 0x3,
+		WHITE = 0xFFFF,
+		BITS_PER_PIXEL = 5
+	};
+public:
+	DrawBuffer2D16BitColor16BitPerPixel1Buffer(uint8_t w, uint8_t h, uint16_t *spiBuffer, DisplayST7735 *d);
+	virtual ~DrawBuffer2D16BitColor16BitPerPixel1Buffer();
+	virtual bool drawPixel(uint16_t x, uint16_t y, const RGBColor &color);
+	virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h,
+			const RGBColor &color);
+	virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w,
+			const RGBColor& color);
+	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
+			const RGBColor &color);
+	virtual void swap();
+	virtual void drawImage(const DCImage &dc);
+protected:
+	uint16_t calcLCDColor(const RGBColor &color);
+private:
+	uint8_t Width;
+	uint8_t Height;
+	uint16_t BufferSize;
+	uint16_t *SPIBuffer;
 };
 
 }

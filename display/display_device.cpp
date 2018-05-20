@@ -26,7 +26,7 @@ bool RGBColor::operator!=(const RGBColor &r) const {
 /////////////////////////////////////////////////////////////////////
 // Generic base display device
 DisplayDevice::DisplayDevice(uint16_t w, uint16_t h, DisplayDevice::ROTATION r) :
-		Width(w), Height(h), Rotation(r) {
+		Width(w), Height(h), Rotation(r), RefreshTopToBot(0) {
 }
 
 DisplayDevice::~DisplayDevice() {
@@ -40,7 +40,24 @@ uint16_t DisplayDevice::getHeight() {
 	return Height;
 }
 DisplayDevice::ROTATION DisplayDevice::getRotation() {
-	return Rotation == 0 ? PORTAIT : LANDSCAPE;
+	return Rotation == 0 ? PORTAIT_TOP_LEFT : LANDSCAPE_TOP_LEFT;
+}
+
+void DisplayDevice::setRotation(ROTATION r, bool swapHeightWidth) {
+	Rotation = r;
+	if(swapHeightWidth) {
+		uint16_t tmp = Height;
+		Height = Width;
+		Width = tmp;
+	}
+}
+
+bool DisplayDevice::isTopToBotRefresh() {
+	return RefreshTopToBot;
+}
+
+void DisplayDevice::setTopToBotRefresh(bool b) {
+	RefreshTopToBot = b;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -85,35 +102,52 @@ DisplayST7735::PackedColor DisplayST7735::PackedColor::create(uint8_t pixelForma
 	return pc;
 }
 
-DisplayST7735::FrameBuf::FrameBuf()
-	: PixelFormat(0), MemoryAccessControl(0) {
+DisplayST7735::FrameBuf::FrameBuf(DisplayST7735 *D)
+	: Display(D), PixelFormat(0), MemoryAccessControl(1) /*1 is not valid*/ {
 
 }
 
 ///////////////////////////////////////////////////////////////////////
 void DisplayST7735::FrameBuf::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
-	if ((MemoryAccessControl & DisplayST7735::ROW_COLUMN_ORDER) == 0) {
-		writeCmd(DisplayST7735::COLUMN_ADDRESS_SET);
-		write16Data(y0);
-		write16Data(y1);
+	//if ((MemoryAccessControl & DisplayST7735::MADCTL_MY) == 0) {
+	//	writeCmd(DisplayST7735::COLUMN_ADDRESS_SET);
+	//	write16Data(y0);
+	//	write16Data(y1);
 
-		writeCmd(DisplayST7735::ROW_ADDRESS_SET);
+	//	writeCmd(DisplayST7735::ROW_ADDRESS_SET);
+	//	write16Data(x0);
+	//	write16Data(x1);
+	//} else {
+	//this code thinks about everything as x is columsn y is rows
+		writeCmd(DisplayST7735::COLUMN_ADDRESS_SET);
 		write16Data(x0);
 		write16Data(x1);
-	} else {
-		writeCmd(DisplayST7735::COLUMN_ADDRESS_SET);
-		write16Data(x0);
-		write16Data(x1);
 
 		writeCmd(DisplayST7735::ROW_ADDRESS_SET);
 		write16Data(y0);
 		write16Data(y1);
-	}
+	//}
 }
 
-void DisplayST7735::FrameBuf::setMemoryAccessControl(uint8_t macctl) {
+void DisplayST7735::FrameBuf::setMemoryAccessControl() {
+	uint8_t macctl  = 0;
+	switch(Display->getRotation()) {
+		case LANDSCAPE_TOP_LEFT:
+			macctl = DisplayST7735::MADCTL_MV|DisplayST7735::MADCTL_MX;
+			break;
+		case PORTAIT_TOP_LEFT:
+		default:
+			break;
+	}
+	if(!Display->isTopToBotRefresh()) {
+		macctl |= DisplayST7735::MADCTL_VERTICAL_REFRESH_ORDER_BOT_TOP;
+	}
+
 	if (macctl != MemoryAccessControl) {
 		MemoryAccessControl = macctl;
+		////TODO Can't swap between landscape and portait
+		//Display->reset();
+		//MemoryAccessControl = DisplayST7735::MADCTL_MV|DisplayST7735::MADCTL_MX|DisplayST7735::MADCTL_VERTICAL_REFRESH_ORDER_BOT_TOP;
 		writeCmd(DisplayST7735::MEMORY_DATA_ACCESS_CONTROL);
 		writeNData(&MemoryAccessControl, 1);
 	}
@@ -159,8 +193,8 @@ bool DisplayST7735::FrameBuf::write16Data(const uint16_t &data) {
 
 
 //////////////////////////////////////////////////////////////////////
-DrawBufferNoBuffer::DrawBufferNoBuffer(DisplayST7735 *d, uint16_t *optimizedFillBuf, uint8_t rowsForDrawBuffer) :
-		Display(d), SPIBuffer(optimizedFillBuf), RowsForDrawBuffer(rowsForDrawBuffer) {
+DrawBufferNoBuffer::DrawBufferNoBuffer(DisplayST7735 *d, uint16_t *optimizedFillBuf, uint8_t rowsForDrawBuffer) : DisplayST7735::FrameBuf(d),
+		SPIBuffer(optimizedFillBuf), RowsForDrawBuffer(rowsForDrawBuffer) {
 }
 
 bool DrawBufferNoBuffer::drawPixel(uint16_t x0, uint16_t y0, const RGBColor &color) {
@@ -184,8 +218,8 @@ void DrawBufferNoBuffer::fillRec(int16_t x, int16_t y, int16_t w, int16_t h, con
 	uint16_t pcolor = *((uint16_t*) (pc.getPackedColorData()));
 	uint16_t pixelCount = w * h;
 	uint16_t maxAtOnce =
-			pixelCount > (RowsForDrawBuffer * Display->getWidth()) ?
-					(RowsForDrawBuffer * Display->getWidth()) : pixelCount;
+			pixelCount > (RowsForDrawBuffer * getDisplay()->getWidth()) ?
+					(RowsForDrawBuffer * getDisplay()->getWidth()) : pixelCount;
 	for (uint16_t i = 0; i < maxAtOnce; ++i) {
 		SPIBuffer[i] = pcolor;
 	}
@@ -207,8 +241,8 @@ void DrawBufferNoBuffer::drawVerticalLine(int16_t x, int16_t y, int16_t h, const
 	uint16_t pcolor = *((uint16_t*) (pc.getPackedColorData()));
 	uint16_t pixelCount = h;
 	uint16_t maxAtOnce =
-			pixelCount > (RowsForDrawBuffer * Display->getWidth()) ?
-					(RowsForDrawBuffer * Display->getWidth()) : pixelCount;
+			pixelCount > (RowsForDrawBuffer * getDisplay()->getWidth()) ?
+					(RowsForDrawBuffer * getDisplay()->getWidth()) : pixelCount;
 	for (uint16_t i = 0; i < maxAtOnce; ++i) {
 		SPIBuffer[i] = pcolor;
 	}
@@ -248,9 +282,9 @@ DrawBufferNoBuffer::~DrawBufferNoBuffer() {
 }
 
 DrawBuffer2D16BitColor::DrawBuffer2D16BitColor(uint8_t w, uint8_t h, uint8_t *backBuffer, uint16_t *spiBuffer,
-		uint8_t rowsForDrawBuffer, uint8_t *drawBlocksBuffer, DisplayST7735 *d) :
+		uint8_t rowsForDrawBuffer, uint8_t *drawBlocksBuffer, DisplayST7735 *d) : DisplayST7735::FrameBuf(d),
 		Width(w), Height(h), BufferSize(w * h), BackBuffer(backBuffer,w*h,6), SPIBuffer(spiBuffer), RowsForDrawBuffer(
-				rowsForDrawBuffer), DrawBlocksChanged(drawBlocksBuffer,h/rowsForDrawBuffer,1), Display(d) {
+				rowsForDrawBuffer), DrawBlocksChanged(drawBlocksBuffer,h/rowsForDrawBuffer,1) {
 }
 
 DrawBuffer2D16BitColor::~DrawBuffer2D16BitColor() {
@@ -276,7 +310,7 @@ void DrawBuffer2D16BitColor::fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
 	uint8_t c = deresColor(color);
 	for (int i = y; i < (h + y); ++i) {
 		//OPTIMIZE THIS BY MAKING A SET RANGE IN BITARRAY
-		uint32_t offset = i * Display->getWidth();
+		uint32_t offset = i * getDisplay()->getWidth();
 		for(int j=0;j<w;++j) {
 			BackBuffer.setValueAsByte(offset+x+j, c);
 		}
@@ -287,14 +321,14 @@ void DrawBuffer2D16BitColor::fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
 void DrawBuffer2D16BitColor::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor &color) {
 	uint8_t c = deresColor(color);
 	for (int i = y; i < (h + y); ++i) {
-		BackBuffer.setValueAsByte(i * Display->getWidth() + x,c);
+		BackBuffer.setValueAsByte(i * getDisplay()->getWidth() + x,c);
 		DrawBlocksChanged.setValueAsByte(i / RowsForDrawBuffer,1);
 	}
 }
 
 void DrawBuffer2D16BitColor::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) {
 	uint8_t c = deresColor(color);
-	uint32_t offset = y*Display->getWidth();
+	uint32_t offset = y*getDisplay()->getWidth();
 	for(int i=x;i<(x+w);++i) {
 		BackBuffer.setValueAsByte(offset+i, c);
 	}
@@ -338,6 +372,73 @@ uint8_t DrawBuffer2D16BitColor::deresColor(const RGBColor &color) {
 	retVal |= (color.getG() / 85) << 2;
 	retVal |= (color.getB() / 85);
 	return retVal;
+}
+
+
+/////////////////////////////////////////
+
+DrawBuffer2D16BitColor16BitPerPixel1Buffer::DrawBuffer2D16BitColor16BitPerPixel1Buffer(uint8_t w, uint8_t h, uint16_t *spiBuffer,
+		DisplayST7735 *d) : DisplayST7735::FrameBuf(d), Width(w), Height(h), BufferSize(w * h * sizeof(uint16_t)), SPIBuffer(spiBuffer) {
+}
+
+DrawBuffer2D16BitColor16BitPerPixel1Buffer::~DrawBuffer2D16BitColor16BitPerPixel1Buffer() {
+
+}
+
+bool DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawPixel(uint16_t x, uint16_t y, const RGBColor &color) {
+	SPIBuffer[(y*Width)+x] = calcLCDColor(color);
+	return true;
+}
+
+//not using buffer just write directly to SPI
+void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawImage(const DCImage &dc) {
+	setAddrWindow(0,0,dc.width-1,dc.height-1);
+	writeCmd(DisplayST7735::MEMORY_WRITE);
+	writeNData((const uint8_t*)&dc.pixel_data[0],dc.height*dc.width*dc.bytes_per_pixel);
+}
+
+void DrawBuffer2D16BitColor16BitPerPixel1Buffer::fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color) {
+	uint16_t c = calcLCDColor(color);
+	for (int i = y; i < (h + y); ++i) {
+		//OPTIMIZE THIS BY MAKING A SET RANGE IN BITARRAY
+		uint32_t offset = i * getDisplay()->getWidth();
+		for(int j=0;j<w;++j) {
+			SPIBuffer[offset+x+j] = c;
+		}
+	}
+}
+
+void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor &color) {
+	uint16_t c = calcLCDColor(color);
+	for (int i = y; i < (h + y); ++i) {
+		SPIBuffer[i * getDisplay()->getWidth() + x] = c;
+	}
+}
+
+void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) {
+	uint16_t c = calcLCDColor(color);
+	uint32_t offset = y*getDisplay()->getWidth();
+	for(int i=x;i<(x+w);++i) {
+		SPIBuffer[offset+i] = c;
+	}
+}
+
+void DrawBuffer2D16BitColor16BitPerPixel1Buffer::swap() {
+	if(/*anychange*/ 1) {
+		setAddrWindow(0, 0, Width, Height);
+		writeCmd(DisplayST7735::MEMORY_WRITE);
+		writeNData((uint8_t*) &SPIBuffer[0], BufferSize);
+	}
+}
+
+uint16_t DrawBuffer2D16BitColor16BitPerPixel1Buffer::calcLCDColor(const RGBColor &color) {
+	uint32_t rc = color.getR()/8; //keep it in 5 bits
+	uint32_t gc = color.getG()/4; //keep it in 6 bits
+	uint32_t bc = color.getB()/8; //keep it in 5 bits
+	RGBColor lcdColor(rc, gc, bc);
+	uint8_t *packedData = DisplayST7735::PackedColor::create(getPixelFormat(), lcdColor).getPackedColorData();
+	uint16_t *pcd = (uint16_t*)packedData;
+	return *pcd;
 }
 
 ////////////////////////////////////////////////////////
@@ -385,7 +486,7 @@ static const struct sCmdBuf initializers[] = {
 		// INVOFF Don't invert display
 		{ DisplayST7735::DISPLAY_INVERSION_OFF, 0, 0, 0 },
 		// Memory access directions. row address/col address, bottom to top refesh (10.1.27)
-		{ DisplayST7735::MEMORY_DATA_ACCESS_CONTROL, 0, 1, { DisplayST7735::VERTICAL_REFRESH_ORDER } },
+		//{ DisplayST7735::MEMORY_DATA_ACCESS_CONTROL, 0, 1, { DisplayST7735::MADCTL_VERTICAL_REFRESH_ORDER_BOT_TOP } },
 		// Color mode 18 bit (10.1.30
 		//011 12 bit/pixel, 101 16 bit/pixel, 110 18 bit/pixel, 111 not used
 		{ DisplayST7735::INTERFACE_PIXEL_FORMAT, 0, 1, { 0b101 } },
@@ -407,6 +508,7 @@ static const struct sCmdBuf initializers[] = {
 		{ 0, 0, 0, 0 } };
 
 void DisplayST7735::swap() {
+	setMemoryAccessControl();
 	FB->swap();
 }
 
@@ -430,59 +532,22 @@ void DisplayST7735::setFont(const FontDef_t *font) {
 	CurrentFont = font;
 }
 
-ErrorType DisplayST7735::init(uint8_t pf, uint8_t madctl, const FontDef_t *defaultFont, DisplayST7735::FrameBuf *fb) {
-	ErrorType et;
-	setFrameBuffer(fb);
-	setFont(defaultFont);
-	setBackLightOn(true);
-	//ensure pixel format
-	getFrameBuffer()->setPixelFormat(pf);
-	//ensure memory access control format
-	getFrameBuffer()->setMemoryAccessControl(madctl);
+void DisplayST7735::setMemoryAccessControl() {
+	getFrameBuffer()->setMemoryAccessControl();
+}
 
+void DisplayST7735::reset() {
 	//clear chip select
 	HAL_GPIO_WritePin(HardwareConfig::getCS().Port, HardwareConfig::getCS().Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(HardwareConfig::getReset().Port, HardwareConfig::getReset().Pin, GPIO_PIN_SET);
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(HardwareConfig::getReset().Port, HardwareConfig::getReset().Pin, GPIO_PIN_RESET);
-	HAL_Delay(10);
+	setBackLightOn(false);
+	HAL_Delay(20);
 	HAL_GPIO_WritePin(HardwareConfig::getReset().Port, HardwareConfig::getReset().Pin, GPIO_PIN_SET);
+	setBackLightOn(true);
 	HAL_Delay(10);
 
-#if 0
-	//serial interface, data packet contains just
-	//transmission byte and control bit D/CX is transferred by the D/CX pin. If D/CX is "low", the transmission byte is
-	//interpreted as a command byte. If D/CX is "high", the transmission byte is stored in the display data
-	// RAM (memory write command), or command register as parameter.
-	// Controlling reads = Page 29
-	//
-	unsigned char CMD = 0x1;
-	//select chip
-	HAL_GPIO_WritePin(OLED_SPI2_CS_GPIO_Port, OLED_SPI2_CS_Pin, GPIO_PIN_RESET);
-	//make it a cmd (D/CX is low)
-	HAL_GPIO_WritePin(OLED_DATA_CMD_GPIO_Port, OLED_DATA_CMD_Pin, GPIO_PIN_RESET);
-	if(HAL_SPI_Transmit(&hspi2,&CMD,1,1000)==HAL_OK) {
-		HAL_Delay(120);
-		//still a command
-		CMD=0x11;
-		if(HAL_SPI_Transmit(&hspi2,&CMD,1,1000)==HAL_OK) {
-			//still a command
-			CMD=0x4;
-			if(HAL_SPI_Transmit(&hspi2,&CMD,1,1000)==HAL_OK) {
-				//HAL_GPIO_WritePin(OLED_SPI2_CS_GPIO_Port, OLED_SPI2_CS_Pin, GPIO_PIN_SET);
-				//NOW release LCD to send data
-				//HAL_GPIO_WritePin(OLED_DATA_CMD_GPIO_Port, OLED_DATA_CMD_Pin, GPIO_PIN_SET);
-				//HAL_GPIO_WritePin(OLED_DATA_CMD_GPIO_Port, OLED_DATA_CMD_Pin, GPIO_PIN_RESET);
-				unsigned char recBuf[1] = {100};
-				HAL_SPI_Receive(&hspi2,&recBuf[0],1,500);
-				HAL_GPIO_WritePin(OLED_SPI2_CS_GPIO_Port, OLED_SPI2_CS_Pin, GPIO_PIN_SET);
-				darknet::LogManager::get();
-				//trace_write((char*)&recBuf[0],3);
-			}
-		}
-	}
-
-#endif
 	for (const sCmdBuf *cmd = initializers; cmd->command; cmd++) {
 		getFrameBuffer()->writeCmd(cmd->command);
 		if (cmd->len)
@@ -490,11 +555,22 @@ ErrorType DisplayST7735::init(uint8_t pf, uint8_t madctl, const FontDef_t *defau
 		if (cmd->delay)
 			HAL_Delay(cmd->delay);
 	}
+}
+
+ErrorType DisplayST7735::init(uint8_t pf, const FontDef_t *defaultFont, DisplayST7735::FrameBuf *fb) {
+	ErrorType et;
+	setFrameBuffer(fb);
+	setFont(defaultFont);
+	setBackLightOn(true);
+	//ensure pixel format
+	getFrameBuffer()->setPixelFormat(pf);
+
+	reset();
+	//ensure memory access control format
+	setMemoryAccessControl();
 
 	fillScreen(RGBColor::BLACK);
 	swap();
-	//fillScreen(RGBColor::BLUE);
-	//swap();
 	return et;
 }
 
