@@ -6,7 +6,7 @@
 namespace cmdc0de {
 
 /*
- *	@autor cmdc0de
+ *	@author cmdc0de
  *	Usage:  Holds run time context information from the application, Current time thorugh the main loop, maybe some performance information
  *	Or anything else the library already knows about.
  */
