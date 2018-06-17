@@ -54,7 +54,7 @@ namespace cmdc0de {
 	};
 }
 
-#define DBGMSG(...) if(LogManager::get().getLogger(cmdc0de::DEBUG_LOGGER_ID)) \
+#define DBGMSG(...) if(cmdc0de::LogManager::get().getLogger(cmdc0de::DEBUG_LOGGER_ID)) \
 		cmdc0de::LogManager::get().getLogger(cmdc0de::DEBUG_LOGGER_ID)->printf(cmdc0de::LogManager::get(),##__VA_ARGS__)
 #define INFOMSG(...) if(cmdc0de::LogManager::get().getLogger(cmdc0de::INFO_LOGGER_ID)) \
 		cmdc0de::LogManager::get().getLogger(cmdc0de::INFO_LOGGER_ID)->printf(cmdc0de::LogManager::get(),##__VA_ARGS__)
