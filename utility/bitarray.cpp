@@ -1,6 +1,7 @@
 #include "bitarray.h"
 #include <string.h>
 
+using cmdc0de::BitArray;
 
 BitArray::BitArray(uint8_t *array, uint32_t slots, uint8_t bitsPerSlot) :
 		Array(array), Slots(slots), BitsPerSlot(bitsPerSlot), NumBytes(((Slots * BitsPerSlot) / 8) + 1) {
@@ -39,4 +40,18 @@ void BitArray::setValueAsByte(uint32_t slot, uint8_t value) {
 		if (!bitOffSet)
 			byte++;
 	}
+}
+
+BitArray &BitArray::operator=(const BitArray &r) {
+	memcpy(&Array[0],&r.Array[0],(r.NumBytes));
+	NumBytes = r.NumBytes;
+	BitsPerSlot = r.BitsPerSlot;
+	Slots = r.Slots;
+}
+
+bool BitArray::operator==(const BitArray &r) {
+	return (NumBytes==r.NumBytes &&
+			BitsPerSlot==r.BitsPerSlot &&
+			Slots==r.Slots &&
+			memcmp(&Array[0],&r.Array[0],NumBytes)==0);
 }
