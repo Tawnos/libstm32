@@ -25,6 +25,7 @@ public:
 	}
 	virtual intptr_t getSubjectKey() const =0;
 	virtual intptr_t getEventKey() const =0;
+	virtual bool isOneShot() const = 0;
 	virtual bool compare(const SignalRegistration *r) const =0;
 private:
 };
@@ -37,29 +38,31 @@ template<typename ObserverType, typename EventType, typename SubjectType>
 class TypedSignalRegistration: public SignalRegistration {
 public:
 	TypedSignalRegistration(ObserverType *observer, bool isOneShot) :
-			SignalRegistration(), Observer(observer) {
+			SignalRegistration(), Observer(observer), OneShot(isOneShot) {
 
 	}
 	virtual void call(void *subject, const void *event) {
-		Observer->receiveSignal(static_cast<SubjectType>(subject),
+		Observer->receiveSignal(static_cast<SubjectType*>(subject),
 				static_cast<const EventType*>(event));
 	}
 	virtual ~TypedSignalRegistration() {
 	}
-	virtual uint32_t getSubjectKey() const {
+	virtual intptr_t getSubjectKey() const {
 		return typeid(SubjectType).hash_code();
 	}
-	virtual uint32_t getEventKey() const {
+	virtual intptr_t getEventKey() const {
 		return typeid(EventType).hash_code();
 	}
+	virtual bool isOneShot() const {return OneShot;}
 	virtual bool compare(const SignalRegistration *r) const {
-		TypedSignalRegistration *tr = static_cast<TypedSignalRegistration*>(r);
+		const TypedSignalRegistration *tr = static_cast<const TypedSignalRegistration*>(r);
 		return tr->Observer == Observer
 				&& getSubjectKey() == tr->getSubjectKey()
 				&& tr->getEventKey() == getEventKey();
 	}
 private:
 	ObserverType *Observer;
+	bool OneShot;
 };
 
 //Map<eventHash,Map<subjectHash,List<SignalRegistration*> > >
@@ -84,48 +87,51 @@ public:
 	}
 	template<typename ObserverT, typename EventT, typename SubjectT>
 	void addListener(ObserverT *o, EventT *e, SubjectT *s, bool isOneShot) {
-		TypedSignalRegistration<ObserverT, EventT, SubjectT> *tsr = new (
-				Pool.allocate()) TypedSignalRegistration<ObserverT, EventT,
-				SubjectT>(o, isOneShot);
-		//TODO protect against double add
-		//TODO IMPL oneShot
-		std::pair<EMAP_IT, bool> p = BusMap.insert(std::make_pair(tsr->getEventKey(),EMAP::mapped_type()));
-				std::pair<MAP_SUB_TO_LISTENER_IT, bool> p2 =
-						p.first.second.insert(
-								std::make_pair(tsr->getSubjectKey(),
-										SIGNAL_LIST::mapped_type()));
-				p2.first.second.push_back(tsr);
+		TypedSignalRegistration<ObserverT, EventT, SubjectT> *tsr =
+				//new (Pool.allocate()) TypedSignalRegistration<ObserverT, EventT,SubjectT>(o, isOneShot);
+				new TypedSignalRegistration<ObserverT, EventT,SubjectT>(o, isOneShot);
+		intptr_t eventKey = tsr->getEventKey();
+		std::pair<EMAP_IT, bool> p = BusMap.insert(std::make_pair(eventKey,MAP_SUB_TO_LISTENER()));
+		std::pair<MAP_SUB_TO_LISTENER_IT, bool> p2 =
+			(*p.first).second.insert(std::make_pair(tsr->getSubjectKey(),SIGNAL_LIST()));
+			(*p2.first).second.push_back(tsr);
 
 			}
 			template<typename ObserverT, typename EventT, typename SubjectT>
 			void removeListener(ObserverT *o, EventT *e, SubjectT *s) {
 				TypedSignalRegistration<ObserverT, EventT, SubjectT> tsr(o,
 						false);
-				EMAP_IT it = BusMap.find(tsr.getEventKey());
-				if (it != BusMap.end()) {
-					MAP_SUB_TO_LISTENER_IT sit =
-							EMAP::iteratorBusMap.find(tsr.getSubjectKey());
-					if (sit != (*it).end()) {
-						(*sit).erase(&tsr);
+				EMAP_IT em = BusMap.find(typeid(e).hash_code());
+				MAP_SUB_TO_LISTENER_IT it = (*em).second.find(typeid(s).hash_code());
+				SIGNAL_LIST_IT sit = (*it).second.begin();
+				for (; sit != (*it).second.end(); ++sit) {
+					if((*sit)->compare(&tsr)) {
+						break;
 					}
 				}
-
-				Pool.release(&tsr);
+				if(sit!=(*it).second.end()) {
+					delete (*sit);
+					(*it).second.erase(sit);
+				}
+				//Pool.release(&tsr);
 			}
 			template<typename T, typename E>
 			void emitSignal(T *subject, const E &event) {
 				EMAP_IT em = BusMap.find(typeid(event).hash_code());
-				MAP_SUB_TO_LISTENER_IT it = em.second.find(
+				MAP_SUB_TO_LISTENER_IT it = (*em).second.find(
 						typeid(subject).hash_code());
-				SIGNAL_LIST_IT sit = it.second.begin();
-				for (; sit != it.second.end(); ++sit) {
+				SIGNAL_LIST_IT sit = (*it).second.begin();
+				for (; sit != (*it).second.end(); ++sit) {
 					(*sit)->call(subject, &event);
+					if((*sit)->isOneShot()) {
+						//add iterator to vector to remove at end!!!
+					}
 				}
 			}
 
 		private:
 			//just using the size of the TypedSignalRegistration
-			etl::pool<uint64_t, MAX_NUM_EVENTS> Pool;
+			//etl::pool<uint64_t, MAX_NUM_EVENTS> Pool;
 
 			EMAP BusMap;
 		};
