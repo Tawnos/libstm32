@@ -93,16 +93,15 @@ public:
 		intptr_t eventKey = tsr->getEventKey();
 		std::pair<EMAP_IT, bool> p = BusMap.insert(std::make_pair(eventKey,MAP_SUB_TO_LISTENER()));
 		std::pair<MAP_SUB_TO_LISTENER_IT, bool> p2 =
-			(*p.first).second.insert(std::make_pair(tsr->getSubjectKey(),SIGNAL_LIST()));
+			(*p.first).second.insert(std::make_pair(((uint32_t)s),SIGNAL_LIST()));
 			(*p2.first).second.push_back(tsr);
 
 			}
 			template<typename ObserverT, typename EventT, typename SubjectT>
 			void removeListener(ObserverT *o, EventT *e, SubjectT *s) {
-				TypedSignalRegistration<ObserverT, EventT, SubjectT> tsr(o,
-						false);
-				EMAP_IT em = BusMap.find(typeid(e).hash_code());
-				MAP_SUB_TO_LISTENER_IT it = (*em).second.find(typeid(s).hash_code());
+				TypedSignalRegistration<ObserverT, EventT, SubjectT> tsr(o, false);
+				EMAP_IT em = BusMap.find(typeid(EventT).hash_code());
+				MAP_SUB_TO_LISTENER_IT it = (*em).second.find(((uint32_t)s));
 				SIGNAL_LIST_IT sit = (*it).second.begin();
 				for (; sit != (*it).second.end(); ++sit) {
 					if((*sit)->compare(&tsr)) {
@@ -117,13 +116,14 @@ public:
 			}
 			template<typename T, typename E>
 			void emitSignal(T *subject, const E &event) {
-				EMAP_IT em = BusMap.find(typeid(event).hash_code());
-				MAP_SUB_TO_LISTENER_IT it = (*em).second.find(
-						typeid(subject).hash_code());
+				intptr_t eventKey = typeid(E).hash_code();
+				EMAP_IT em = BusMap.find(eventKey);
+				MAP_SUB_TO_LISTENER_IT it = (*em).second.find(((uint32_t)subject));
 				SIGNAL_LIST_IT sit = (*it).second.begin();
 				for (; sit != (*it).second.end(); ++sit) {
+					bool isOneShot = (*sit)->isOneShot();
 					(*sit)->call(subject, &event);
-					if((*sit)->isOneShot()) {
+					if(isOneShot) {
 						//add iterator to vector to remove at end!!!
 					}
 				}
