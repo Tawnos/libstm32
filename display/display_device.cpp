@@ -704,6 +704,32 @@ uint32_t DisplayST7735::drawString(uint16_t xPos, uint16_t yPos, const char *pt,
 	return (pt - orig);  // number of characters printed
 }
 
+uint32_t DisplayST7735::drawString(uint16_t xPos, uint16_t yPos, const char *pt, const RGBColor &textColor,
+		const RGBColor &backGroundColor, uint8_t size, bool lineWrap, uint8_t charsToRender) {
+	uint16_t currentX = xPos;
+	uint16_t currentY = yPos;
+	const char *orig = pt;
+
+	while (charsToRender--) {
+		if ((currentX > getWidth() && !lineWrap) || currentY > getHeight()) {
+			return pt - orig;
+		} else if (currentX > getWidth() && lineWrap) {
+			currentX = 0;
+			currentY += CurrentFont->FontHeight * size;
+			drawCharAtPosition(currentX, currentY, *pt, textColor, backGroundColor, size);
+			currentX += CurrentFont->FontWidth;
+		} else if (*pt == '\n' || *pt == '\r') {
+			currentY += CurrentFont->FontHeight * size;
+			currentX = 0;
+		} else {
+			drawCharAtPosition(currentX, currentY, *pt, textColor, backGroundColor, size);
+			currentX += CurrentFont->FontWidth * size;
+		}
+		pt++;
+	}
+	return (pt - orig);  // number of characters printed
+}
+
 void DisplayST7735::drawVerticalLine(int16_t x, int16_t y, int16_t h) {
 	drawVerticalLine(x, y, h, CurrentTextColor);
 }
