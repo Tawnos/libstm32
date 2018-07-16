@@ -710,7 +710,7 @@ uint32_t DisplayST7735::drawString(uint16_t xPos, uint16_t yPos, const char *pt,
 	uint16_t currentY = yPos;
 	const char *orig = pt;
 
-	while (charsToRender--) {
+	while (charsToRender-- && *pt) {
 		if ((currentX > getWidth() && !lineWrap) || currentY > getHeight()) {
 			return pt - orig;
 		} else if (currentX > getWidth() && lineWrap) {
