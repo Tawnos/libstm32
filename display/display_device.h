@@ -82,7 +82,7 @@ public:
 	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color)=0;
 	virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color)=0;
 	virtual void fillScreen(const RGBColor &color)=0;
-	virtual void drawImage(const DCImage &dcImage)=0;
+	virtual void drawImage(int16_t x, int16_t y, const DCImage &dcImage)=0;
 	virtual uint32_t drawString(uint16_t xPos, uint16_t yPos, const char *pt)=0;
 	virtual uint32_t drawString(uint16_t xPos, uint16_t yPos, const char *pt, const RGBColor &textColor)=0;
 	virtual uint32_t drawString(uint16_t xPos, uint16_t yPos, const char *pt, const RGBColor &textColor, const RGBColor &bgColor, uint8_t size, bool lineWrap)=0;
@@ -148,7 +148,7 @@ public:
 		virtual void swap()=0;
 		virtual bool drawPixel(uint16_t x0, uint16_t y0,
 				const RGBColor &color)=0;
-		virtual void drawImage(const DCImage &dc)=0;
+		virtual void drawImage(int16_t x, int16_t y, const DCImage &dc)=0;
 	protected:
 		void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 		bool writeCmd(uint8_t c);
@@ -527,7 +527,7 @@ public:
 	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color);
 	virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color);
 	void fillScreen(const RGBColor &color);
-	void drawImage(const DCImage &dcImage);
+	void drawImage(int16_t x, int16_t y, const DCImage &dcImage);
 	void setMemoryAccessControl();
 	//////////////////////////////////////////
 	void setFrameBuffer(FrameBuf *fb) {
@@ -595,7 +595,7 @@ public:
 			const RGBColor &color);
 	virtual void swap();
 	virtual ~DrawBufferNoBuffer();
-	virtual void drawImage(const DCImage &dc);
+	virtual void drawImage(int16_t x, int16_t y, const DCImage &dc);
 private:
 	uint16_t *SPIBuffer;
 	uint8_t RowsForDrawBuffer;
@@ -635,7 +635,7 @@ public:
 	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
 			const RGBColor &color);
 	virtual void swap();
-	virtual void drawImage(const DCImage &dc);
+	virtual void drawImage(int16_t x, int16_t y, const DCImage &dc);
 protected:
 	uint16_t calcLCDColor(uint8_t packedColor);
 	uint8_t deresColor(const RGBColor &color);
@@ -679,7 +679,7 @@ public:
 	virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
 			const RGBColor &color);
 	virtual void swap();
-	virtual void drawImage(const DCImage &dc);
+	virtual void drawImage(int16_t x, int16_t y, const DCImage &dc);
 protected:
 	uint16_t calcLCDColor(const RGBColor &color);
 private:

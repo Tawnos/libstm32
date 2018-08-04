@@ -204,7 +204,7 @@ bool DrawBufferNoBuffer::drawPixel(uint16_t x0, uint16_t y0, const RGBColor &col
 	return writeNData(pc.getPackedColorData(), pc.getSize());
 }
 
-void DrawBufferNoBuffer::drawImage(const DCImage &dc) {
+void DrawBufferNoBuffer::drawImage(int16_t x, int16_t y, const DCImage &dc) {
 	setAddrWindow(0,0,dc.width,dc.height);
 	writeCmd(DisplayST7735::MEMORY_WRITE);
 	writeNData((const uint8_t*)&dc.pixel_data[0],dc.height*dc.width*dc.bytes_per_pixel);
@@ -299,7 +299,7 @@ bool DrawBuffer2D16BitColor::drawPixel(uint16_t x, uint16_t y, const RGBColor &c
 }
 
 //not using buffer just write directly to SPI
-void DrawBuffer2D16BitColor::drawImage(const DCImage &dc) {
+void DrawBuffer2D16BitColor::drawImage(int16_t x, int16_t y, const DCImage &dc) {
 	setAddrWindow(0,0,dc.width-1,dc.height-1);
 	writeCmd(DisplayST7735::MEMORY_WRITE);
 	writeNData((const uint8_t*)&dc.pixel_data[0],dc.height*dc.width*dc.bytes_per_pixel);
@@ -391,10 +391,27 @@ bool DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawPixel(uint16_t x, uint16_t 
 }
 
 //not using buffer just write directly to SPI
-void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawImage(const DCImage &dc) {
-	setAddrWindow(0,0,dc.width-1,dc.height-1);
+void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawImage(int16_t x1, int16_t y1, const DCImage &dc) {
+#if 0
+	setAddrWindow(0,0,dc.width,dc.height);
 	writeCmd(DisplayST7735::MEMORY_WRITE);
 	writeNData((const uint8_t*)&dc.pixel_data[0],dc.height*dc.width*dc.bytes_per_pixel);
+#else
+	int totalPixels = dc.height*dc.width;
+	uint16_t *t = (uint16_t*)&dc.pixel_data[0];
+	for(int y=y1;y<dc.height;++y) {
+
+		for(int x=x1;x<dc.width;++x) {
+			uint8_t testVar = dc.pixel_data[(y*dc.height)+x];
+			RGBColor c(((t[(y*dc.height)+x]&0b1111100000000000)>>11),
+					   ((t[(y*dc.height)+x]&0b0000011111100000)>>5),
+					   ((t[(y*dc.height)+x]&0b0000000000011111)));
+			uint8_t *packedData = DisplayST7735::PackedColor::create(getPixelFormat(), c).getPackedColorData();
+			uint16_t *pcd = (uint16_t*)packedData;
+			SPIBuffer[(y*Width)+x] = (*pcd);
+		}
+	}
+#endif
 }
 
 void DrawBuffer2D16BitColor16BitPerPixel1Buffer::fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor &color) {
@@ -512,8 +529,8 @@ void DisplayST7735::swap() {
 	FB->swap();
 }
 
-void DisplayST7735::drawImage(const DCImage &dcImage) {
-	FB->drawImage(dcImage);
+void DisplayST7735::drawImage(int16_t x, int16_t y, const DCImage &dcImage) {
+	FB->drawImage(x,y,dcImage);
 }
 
 bool DisplayST7735::drawPixel(uint16_t x0, uint16_t y0, const RGBColor &color) {
