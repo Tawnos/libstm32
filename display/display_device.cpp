@@ -397,18 +397,15 @@ void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawImage(int16_t x1, int16_t y
 	writeCmd(DisplayST7735::MEMORY_WRITE);
 	writeNData((const uint8_t*)&dc.pixel_data[0],dc.height*dc.width*dc.bytes_per_pixel);
 #else
-	int totalPixels = dc.height*dc.width;
 	uint16_t *t = (uint16_t*)&dc.pixel_data[0];
-	for(int y=y1;y<dc.height;++y) {
-
-		for(int x=x1;x<dc.width;++x) {
-			uint8_t testVar = dc.pixel_data[(y*dc.height)+x];
+	for(int y=0;y<dc.height;++y) {
+		for(int x=0;x<dc.width;++x) {
 			RGBColor c(((t[(y*dc.height)+x]&0b1111100000000000)>>11),
 					   ((t[(y*dc.height)+x]&0b0000011111100000)>>5),
 					   ((t[(y*dc.height)+x]&0b0000000000011111)));
 			uint8_t *packedData = DisplayST7735::PackedColor::create(getPixelFormat(), c).getPackedColorData();
 			uint16_t *pcd = (uint16_t*)packedData;
-			SPIBuffer[(y*Width)+x] = (*pcd);
+			SPIBuffer[((y+y1)*Width)+(x+x1)] = (*pcd);
 		}
 	}
 #endif
