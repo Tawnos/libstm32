@@ -118,13 +118,17 @@ public:
 			void emitSignal(T *subject, const E &event) {
 				intptr_t eventKey = typeid(E).hash_code();
 				EMAP_IT em = BusMap.find(eventKey);
-				MAP_SUB_TO_LISTENER_IT it = (*em).second.find(((uint32_t)subject));
-				SIGNAL_LIST_IT sit = (*it).second.begin();
-				for (; sit != (*it).second.end(); ++sit) {
-					bool isOneShot = (*sit)->isOneShot();
-					(*sit)->call(subject, &event);
-					if(isOneShot) {
-						//add iterator to vector to remove at end!!!
+				if(em!=BusMap.end()) {
+					MAP_SUB_TO_LISTENER_IT it = (*em).second.find(((uint32_t)subject));
+					if(it!=(*em).second.end()) {
+						SIGNAL_LIST_IT sit = (*it).second.begin();
+						for (; sit != (*it).second.end(); ++sit) {
+							bool isOneShot = (*sit)->isOneShot();
+							(*sit)->call(subject, &event);
+							if(isOneShot) {
+								//add iterator to vector to remove at end!!!
+							}
+						}
 					}
 				}
 			}
