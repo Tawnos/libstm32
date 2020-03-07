@@ -1,7 +1,5 @@
 #include "display_device.h"
 #include "../config.h"
-#include "spi.h"
-#include "gpio.h"
 #include "../logger.h"
 #include "assert.h"
 #include <string.h>

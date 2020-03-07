@@ -47,6 +47,7 @@ BitArray &BitArray::operator=(const BitArray &r) {
 	NumBytes = r.NumBytes;
 	BitsPerSlot = r.BitsPerSlot;
 	Slots = r.Slots;
+	return (*this);
 }
 
 bool BitArray::operator==(const BitArray &r) {
