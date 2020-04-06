@@ -29,7 +29,16 @@
 	#include <stm32f3xx_hal_dma.h>
 	#include <stm32f3xx_hal_dma_ex.h>
 #define DMA_Channel_StreamTypeDef DMA_Channel_TypeDef
-
+#elif defined (STM32G031xx)
+	#include <stm32g0xx_hal.h>
+	#include <stm32g0xx_hal_gpio.h>
+	#include <stm32g0xx_hal_tim.h>
+	#include <stm32g0xx_hal_tim_ex.h>
+	#include <stm32g0xx_hal_dma.h>
+	#include <stm32g0xx_hal_dma_ex.h>
+#define DMA_Channel_StreamTypeDef DMA_Channel_TypeDef
 #endif
+
+#include "error_type.h"
 
 #endif
