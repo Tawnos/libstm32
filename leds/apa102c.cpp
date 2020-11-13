@@ -26,7 +26,7 @@ APA102c::APA102c(const SPIDevice *spiI) : SPIInterface(spiI), BufferSize(0), Led
 
 void APA102c::init(uint16_t nleds, RGB *ledBuf) {
 	delete [] LedBuffer1;
-	BufferSize = (nleds*4)+8;
+	BufferSize = (nleds*4)+4;
 	LedBuffer1 = new char [BufferSize];
 	int bufOff = 0;
 	LedBuffer1[bufOff]   = 0x0;
@@ -41,10 +41,18 @@ void APA102c::init(uint16_t nleds, RGB *ledBuf) {
 		LedBuffer1[++bufOff] = ledBuf[l].getGreen();
 		LedBuffer1[++bufOff] = ledBuf[l].getRed();
 	}
-	LedBuffer1[++bufOff] = 0xFF;
-	LedBuffer1[++bufOff] = 0xFF;
-	LedBuffer1[++bufOff] = 0xFF;
-	LedBuffer1[++bufOff] = 0xFF;
+	//LedBuffer1[++bufOff] = 0xFF;
+	//LedBuffer1[++bufOff] = 0xFF;
+	//LedBuffer1[++bufOff] = 0xFF;
+	//LedBuffer1[++bufOff] = 0xFF;
+}
+
+void APA102c::setBrightness(uint8_t t) {
+	uint8_t bright = t;
+	bright = (uint8_t)(((float)bright/100.0f)*MAX_BRIGHTNESS);
+	for(int i=4;i<BufferSize;i+=4) {
+		LedBuffer1[i]=BRIGHTNESS_START_BITS|bright;
+	}
 }
 
 

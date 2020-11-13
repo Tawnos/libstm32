@@ -18,6 +18,7 @@ public:
 public:
 	APA102c(const SPIDevice *spiI);
 	void init(uint16_t nleds, RGB *ledBuf);
+	void setBrightness(uint8_t t);
 	void send();
 private:
 	const SPIDevice *SPIInterface;
