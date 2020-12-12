@@ -530,102 +530,102 @@ uECC_VLI_API void uECC_vli_mult(uECC_word_t *result,
 #else /* Thumb-1 */
     uint32_t r4, r5, r6, r7;
 
-    __asm__ volatile (
-        ".syntax unified \n\t"
-        "subs %[r3], #1 \n\t" /* r3 = num_words - 1 */
-        "lsls %[r3], #2 \n\t" /* r3 = (num_words - 1) * 4 */
-        "mov r8, %[r3] \n\t"  /* r8 = (num_words - 1) * 4 */
-        "lsls %[r3], #1 \n\t" /* r3 = (num_words - 1) * 8 */
-        "mov r9, %[r3] \n\t"  /* r9 = (num_words - 1) * 8 */
-        "movs %[r3], #0 \n\t" /* c0 = 0 */
-        "movs %[r4], #0 \n\t" /* c1 = 0 */
-        "movs %[r5], #0 \n\t" /* c2 = 0 */
-        "movs %[r6], #0 \n\t" /* k = 0 */
-        
-        "push {%[r0]} \n\t" /* keep result on the stack */
-        
-        "1: \n\t" /* outer loop (k < num_words) */
-        "movs %[r7], #0 \n\t" /* r7 = i = 0 */
-        "b 3f \n\t"
-        
-        "2: \n\t" /* outer loop (k >= num_words) */
-        "movs %[r7], %[r6] \n\t" /* r7 = k */
-        "mov %[r0], r8 \n\t"     /* r0 = (num_words - 1) * 4 */
-        "subs %[r7], %[r0] \n\t" /* r7 = i = k - (num_words - 1) (times 4) */
-        
-        "3: \n\t" /* inner loop */
-        "mov r10, %[r3] \n\t"
-        "mov r11, %[r4] \n\t"
-        "mov r12, %[r5] \n\t"
-        "mov r14, %[r6] \n\t"
-        "subs %[r0], %[r6], %[r7] \n\t"          /* r0 = k - i */
-        
-        "ldr %[r4], [%[r2], %[r0]] \n\t" /* r4 = right[k - i] */
-        "ldr %[r0], [%[r1], %[r7]] \n\t" /* r0 = left[i] */
-        
-        "lsrs %[r3], %[r0], #16 \n\t" /* r3 = a1 */
-        "uxth %[r0], %[r0] \n\t"      /* r0 = a0 */
-        
-        "lsrs %[r5], %[r4], #16 \n\t" /* r5 = b1 */
-        "uxth %[r4], %[r4] \n\t"      /* r4 = b0 */
-        
-        "movs %[r6], %[r3] \n\t"        /* r6 = a1 */
-        "muls %[r6], %[r5], %[r6] \n\t" /* r6 = a1 * b1 */
-        "muls %[r3], %[r4], %[r3] \n\t" /* r3 = b0 * a1 */
-        "muls %[r5], %[r0], %[r5] \n\t" /* r5 = a0 * b1 */
-        "muls %[r0], %[r4], %[r0] \n\t" /* r0 = a0 * b0 */
-        
-        /* Add middle terms */
-        "lsls %[r4], %[r3], #16 \n\t"
-        "lsrs %[r3], %[r3], #16 \n\t"
-        "adds %[r0], %[r4] \n\t"
-        "adcs %[r6], %[r3] \n\t"
-        
-        "lsls %[r4], %[r5], #16 \n\t"
-        "lsrs %[r5], %[r5], #16 \n\t"
-        "adds %[r0], %[r4] \n\t"
-        "adcs %[r6], %[r5] \n\t"
-        
-        "mov %[r3], r10\n\t"
-        "mov %[r4], r11\n\t"
-        "mov %[r5], r12\n\t"
-        "adds %[r3], %[r0] \n\t"         /* add low word to c0 */
-        "adcs %[r4], %[r6] \n\t"         /* add high word to c1, including carry */
-        "movs %[r0], #0 \n\t"            /* r0 = 0 (does not affect carry bit) */
-        "adcs %[r5], %[r0] \n\t"         /* add carry to c2 */
-        
-        "mov %[r6], r14\n\t" /* r6 = k */
+//    __asm__ volatile (
+//        ".syntax divided \n\t"
+//        "subs %[r3], #1 \n\t" /* r3 = num_words - 1 */
+//        "lsls %[r3], #2 \n\t" /* r3 = (num_words - 1) * 4 */
+//        "mov r8, %[r3] \n\t"  /* r8 = (num_words - 1) * 4 */
+//        "lsls %[r3], #1 \n\t" /* r3 = (num_words - 1) * 8 */
+//        "mov r9, %[r3] \n\t"  /* r9 = (num_words - 1) * 8 */
+//        "movs %[r3], #0 \n\t" /* c0 = 0 */
+//        "movs %[r4], #0 \n\t" /* c1 = 0 */
+//        "movs %[r5], #0 \n\t" /* c2 = 0 */
+//        "movs %[r6], #0 \n\t" /* k = 0 */
+//
+//        "push {%[r0]} \n\t" /* keep result on the stack */
+//
+//        "1: \n\t" /* outer loop (k < num_words) */
+//        "movs %[r7], #0 \n\t" /* r7 = i = 0 */
+//        "b 3f \n\t"
+//
+//        "2: \n\t" /* outer loop (k >= num_words) */
+//        "movs %[r7], %[r6] \n\t" /* r7 = k */
+//        "mov %[r0], r8 \n\t"     /* r0 = (num_words - 1) * 4 */
+//        "subs %[r7], %[r0] \n\t" /* r7 = i = k - (num_words - 1) (times 4) */
+//
+//        "3: \n\t" /* inner loop */
+//        "mov r10, %[r3] \n\t"
+//        "mov r11, %[r4] \n\t"
+//        "mov r12, %[r5] \n\t"
+//        "mov r14, %[r6] \n\t"
+//        "subs %[r0], %[r6], %[r7] \n\t"          /* r0 = k - i */
+//
+//        "ldr %[r4], [%[r2], %[r0]] \n\t" /* r4 = right[k - i] */
+//        "ldr %[r0], [%[r1], %[r7]] \n\t" /* r0 = left[i] */
+//
+//        "lsrs %[r3], %[r0], #16 \n\t" /* r3 = a1 */
+//        "uxth %[r0], %[r0] \n\t"      /* r0 = a0 */
+//
+//        "lsrs %[r5], %[r4], #16 \n\t" /* r5 = b1 */
+//        "uxth %[r4], %[r4] \n\t"      /* r4 = b0 */
+//
+//        "movs %[r6], %[r3] \n\t"        /* r6 = a1 */
+//        "muls %[r6], %[r5], %[r6] \n\t" /* r6 = a1 * b1 */
+//        "muls %[r3], %[r4], %[r3] \n\t" /* r3 = b0 * a1 */
+//        "muls %[r5], %[r0], %[r5] \n\t" /* r5 = a0 * b1 */
+//        "muls %[r0], %[r4], %[r0] \n\t" /* r0 = a0 * b0 */
+//
+//        /* Add middle terms */
+//        "lsls %[r4], %[r3], #16 \n\t"
+//        "lsrs %[r3], %[r3], #16 \n\t"
+//        "adds %[r0], %[r4] \n\t"
+//        "adcs %[r6], %[r3] \n\t"
+//
+//        "lsls %[r4], %[r5], #16 \n\t"
+//        "lsrs %[r5], %[r5], #16 \n\t"
+//        "adds %[r0], %[r4] \n\t"
+//        "adcs %[r6], %[r5] \n\t"
+//
+//        "mov %[r3], r10\n\t"
+//        "mov %[r4], r11\n\t"
+//        "mov %[r5], r12\n\t"
+//        "adds %[r3], %[r0] \n\t"         /* add low word to c0 */
+//        "adcs %[r4], %[r6] \n\t"         /* add high word to c1, including carry */
+//        "movs %[r0], #0 \n\t"            /* r0 = 0 (does not affect carry bit) */
+//        "adcs %[r5], %[r0] \n\t"         /* add carry to c2 */
+//
+//        "mov %[r6], r14\n\t" /* r6 = k */
+//
+//        "adds %[r7], #4 \n\t"   /* i += 4 */
+//        "cmp %[r7], r8 \n\t"    /* i > (num_words - 1) (times 4)? */
+//        "bgt 4f \n\t"           /*   if so, exit the loop */
+//        "cmp %[r7], %[r6] \n\t" /* i <= k? */
+//        "ble 3b \n\t"           /*   if so, continue looping */
+//
+//        "4: \n\t" /* end inner loop */
+//
+//        "ldr %[r0], [sp, #0] \n\t" /* r0 = result */
+//
+//        "str %[r3], [%[r0], %[r6]] \n\t" /* result[k] = c0 */
+//        "mov %[r3], %[r4] \n\t"          /* c0 = c1 */
+//        "mov %[r4], %[r5] \n\t"          /* c1 = c2 */
+//        "movs %[r5], #0 \n\t"            /* c2 = 0 */
+//        "adds %[r6], #4 \n\t"            /* k += 4 */
+//        "cmp %[r6], r8 \n\t"             /* k <= (num_words - 1) (times 4) ? */
+//        "ble 1b \n\t"                    /*   if so, loop back, start with i = 0 */
+//        "cmp %[r6], r9 \n\t"             /* k <= (num_words * 2 - 2) (times 4) ? */
+//        "ble 2b \n\t"                    /*   if so, loop back, with i = (k + 1) - num_words */
+//        /* end outer loop */
+//
+//        "str %[r3], [%[r0], %[r6]] \n\t" /* result[num_words * 2 - 1] = c0 */
+//        "pop {%[r0]} \n\t"               /* pop result off the stack */
 
-        "adds %[r7], #4 \n\t"   /* i += 4 */
-        "cmp %[r7], r8 \n\t"    /* i > (num_words - 1) (times 4)? */
-        "bgt 4f \n\t"           /*   if so, exit the loop */
-        "cmp %[r7], %[r6] \n\t" /* i <= k? */
-        "ble 3b \n\t"           /*   if so, continue looping */
-        
-        "4: \n\t" /* end inner loop */
-        
-        "ldr %[r0], [sp, #0] \n\t" /* r0 = result */
-        
-        "str %[r3], [%[r0], %[r6]] \n\t" /* result[k] = c0 */
-        "mov %[r3], %[r4] \n\t"          /* c0 = c1 */
-        "mov %[r4], %[r5] \n\t"          /* c1 = c2 */
-        "movs %[r5], #0 \n\t"            /* c2 = 0 */
-        "adds %[r6], #4 \n\t"            /* k += 4 */
-        "cmp %[r6], r8 \n\t"             /* k <= (num_words - 1) (times 4) ? */
-        "ble 1b \n\t"                    /*   if so, loop back, start with i = 0 */
-        "cmp %[r6], r9 \n\t"             /* k <= (num_words * 2 - 2) (times 4) ? */
-        "ble 2b \n\t"                    /*   if so, loop back, with i = (k + 1) - num_words */
-        /* end outer loop */
-        
-        "str %[r3], [%[r0], %[r6]] \n\t" /* result[num_words * 2 - 1] = c0 */
-        "pop {%[r0]} \n\t"               /* pop result off the stack */
-        
-        ".syntax divided \n\t"
-        : [r3] "+l" (num_words), [r4] "=&l" (r4),
-          [r5] "=&l" (r5), [r6] "=&l" (r6), [r7] "=&l" (r7)
-        : [r0] "l" (result), [r1] "l" (left), [r2] "l" (right)
-        : "r8", "r9", "r10", "r11", "r12", "r14", "cc", "memory"
-    );
+//    	".syntax divided \n\t"
+//        : [r3] "+l" (num_words), [r4] "=&l" (r4),
+//          [r5] "=&l" (r5), [r6] "=&l" (r6), [r7] "=&l" (r7)
+//        : [r0] "l" (result), [r1] "l" (left), [r2] "l" (right)
+//        : "r8", "r9", "r10", "r11", "r12", "r14", "cc", "memory"
+//    );
 #endif
 }
 #define asm_mult 1

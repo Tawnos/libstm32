@@ -8,6 +8,8 @@
 #ifndef LIBSTM32_SENSORS_BMP280_BMP280_H_
 #define LIBSTM32_SENSORS_BMP280_BMP280_H_
 
+#ifdef HAL_I2C_MODULE_ENABLED
+
 #include "../../error_type.h"
 #include "../../config.h"
 
@@ -53,11 +55,11 @@ public:
 	static const int BMP280_DIG_P9_LSB_REG = 0x9E;
 	static const int BMP280_DIG_P9_MSB_REG = 0x9F;
 	static const int BMP280_DIG_H1_REG = 0xA1;
-	//The “id” register contains the chip identification number chip_id[7:0], which is 0x58. This number
+	//The ï¿½idï¿½ register contains the chip identification number chip_id[7:0], which is 0x58. This number
 	//can be read as soon as the device finished the power-on-reset.
 	static const int BMP280_CHIP_ID_REG = 0xD0; //Chip ID
 	static const int BMP280_VALID_CHIP_ID = 0x58; //BME280 MAGIC 0x60
-	//The “reset” register contains the soft reset word reset[7:0]. If the value 0xB6 is written to the
+	//The ï¿½resetï¿½ register contains the soft reset word reset[7:0]. If the value 0xB6 is written to the
 	//register, the device is reset using the complete power-on-reset procedure. Writing other values
 	//than 0xB6 has no effect. The readout value is always 0x00
 	static const int BMP280_RST_REG = 0xE0; //Softreset Reg
@@ -72,16 +74,16 @@ public:
 	static const int BMP280_DIG_H6_REG = 0xE7;
 	static const int BMP280_CTRL_HUMIDITY_REG = 0xF2; //Ctrl Humidity Reg
 	////////////////////////////////////////////////////
-	//The “status” register contains two bits which indicate the status of the device
-	//bit 3:  Automatically set to ‘1’ whenever a conversion is running and back to ‘0’ when the results have been transferred
+	//The ï¿½statusï¿½ register contains two bits which indicate the status of the device
+	//bit 3:  Automatically set to ï¿½1ï¿½ whenever a conversion is running and back to ï¿½0ï¿½ when the results have been transferred
 	//			to the data registers.
-	//bit 0: Automatically set to ‘1’ when the NVM data are being copied to image registers and back to ‘0’ when the
+	//bit 0: Automatically set to ï¿½1ï¿½ when the NVM data are being copied to image registers and back to ï¿½0ï¿½ when the
 	//		copying is done. The data are copied at power-on-reset and before every conversion
 	static const int BMP280_STAT_REG = 0xF3; //Status Reg
 	static const int BMP280_CONVERSION_RUNNING_BIT_MASK = 0x8;
 	static const int BMP280_NVM_DATA_BEING_COPIED_MASK = 0x1;
 	/////////////////////////////////
-	// The “ctrl_meas” register sets the data acquisition options of the device
+	// The ï¿½ctrl_measï¿½ register sets the data acquisition options of the device
 	// Bit 1,0: Controls the power mode of the device. See chapter 3.6 for details
 	// bit 4,3,2: Controls oversampling of pressure data
 	// bit 7,6,5: Controls oversampling of temperature data
@@ -206,4 +208,5 @@ private:
 
 } /* namespace cmdc0de */
 
+#endif
 #endif /* LIBSTM32_SENSORS_BMP280_BMP280_H_ */

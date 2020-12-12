@@ -8,6 +8,8 @@
 #ifndef LIBSTM32_I2C_H_
 #define LIBSTM32_I2C_H_
 
+#ifdef HAL_I2C_MODULE_ENABLED
+
 #include "utility/pin.h"
 
 namespace cmdc0de {
@@ -55,6 +57,6 @@ private:
 
 }
 
-
+#endif
 
 #endif /* LIBSTM32_I2C_H_ */

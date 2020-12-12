@@ -5,6 +5,8 @@
  *      Author: dcomes
  */
 
+#ifdef HAL_I2C_MODULE_ENABLED
+
 #include "config.h"
 #include "i2c.h"
 #include <cstdio>
@@ -107,4 +109,5 @@ bool I2CMaster::read(uint8_t addr, uint8_t *data, uint16_t size, uint32_t timeou
 }
 
 
+#endif
 

@@ -36,7 +36,9 @@
 	#include <stm32g0xx_hal_tim_ex.h>
 	#include <stm32g0xx_hal_dma.h>
 	#include <stm32g0xx_hal_dma_ex.h>
+#ifdef HAL_I2C_MODULE_ENABLED
 	#include <stm32g0xx_hal_i2c.h>
+#endif
 #define DMA_Channel_StreamTypeDef DMA_Channel_TypeDef
 #endif
 

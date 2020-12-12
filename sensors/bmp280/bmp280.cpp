@@ -4,7 +4,7 @@
  *  Created on: Oct 7, 2017
  *      Author: dcomes
  */
-
+#ifdef HAL_I2C_MODULE_ENABLED
 #include "bmp280.h"
 #include <math.h>
 
@@ -98,7 +98,7 @@ void BMP280::reset(void) {
 float BMP280::readFloatPressure(void) {
 
 	// Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
-	// Output value of “24674867” represents 24674867/256 = 96386.2 Pa = 963.862 hPa
+	// Output value of ï¿½24674867ï¿½ represents 24674867/256 = 96386.2 Pa = 963.862 hPa
 	int32_t adc_P = ((uint32_t) readRegister(BMP280_PRESSURE_MSB_REG) << 12)
 			| ((uint32_t) readRegister(BMP280_PRESSURE_LSB_REG) << 4)
 			| ((readRegister(BMP280_PRESSURE_XLSB_REG) >> 4) & 0x0F);
@@ -138,7 +138,7 @@ float BMP280::readFloatAltitudeFeet(void) {
 
 float BMP280::readFloatHumidity(void) {
 	// Returns humidity in %RH as unsigned 32 bit integer in Q22. 10 format (22 integer and 10 fractional bits).
-	// Output value of “47445” represents 47445/1024 = 46. 333 %RH
+	// Output value of ï¿½47445ï¿½ represents 47445/1024 = 46. 333 %RH
 	int32_t adc_H = ((uint32_t) readRegister(BMP280_HUMIDITY_MSB_REG) << 8)
 			| ((uint32_t) readRegister(BMP280_HUMIDITY_LSB_REG));
 
@@ -162,7 +162,7 @@ float BMP280::readFloatHumidity(void) {
 //
 //****************************************************************************//
 float BMP280::readTempC(void) {
-	// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
+	// Returns temperature in DegC, resolution is 0.01 DegC. Output value of ï¿½5123ï¿½ equals 51.23 DegC.
 	// t_fine carries fine temperature as global value
 
 	//get the reading (adc_T);
@@ -206,3 +206,4 @@ void BMP280::writeRegister(uint8_t offset, uint8_t dataToWrite) {
 	HAL_I2C_Master_Transmit(Hardware::getI2C(I2CAddress),I2CAddress,&data[0],2,100);
 }
 
+#endif
