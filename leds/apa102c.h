@@ -20,6 +20,7 @@ public:
 	void init(uint16_t nleds, RGB *ledBuf);
 	void setBrightness(uint8_t t);
 	void send();
+	void send(uint16_t nleds, RGB *ledBuf);
 private:
 	const SPIDevice *SPIInterface;
 	uint16_t BufferSize;

@@ -64,3 +64,8 @@ void APA102c::send() {
 		SPIInterface->send((uint8_t*)LedBuffer1,BufferSize);
 	}
 }
+
+void APA102c::send(uint16_t nleds, RGB *ledBuf) {
+	init(nleds,ledBuf);
+	send();
+}
