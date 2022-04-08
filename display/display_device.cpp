@@ -383,7 +383,7 @@ void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawImage(int16_t x1, int16_t y
 	writeNData((const uint8_t*)&dc.pixel_data[0],dc.height*dc.width*dc.bytes_per_pixel);
 #else
 	uint16_t *t = (uint16_t*)&dc.pixel_data[0];
-	for(int y=0;y<dc.height;++y) {
+	for(auto y=0;y<dc.height;++y) {
 		for(int x=0;x<dc.width;++x) {
 			RGBColor c(((t[(y*dc.height)+x]&0b1111100000000000)>>11),
 					   ((t[(y*dc.height)+x]&0b0000011111100000)>>5),
