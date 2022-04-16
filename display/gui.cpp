@@ -27,11 +27,6 @@ GUITickerData::GUITickerData(const char * txt, uint8_t X, uint8_t Y,
 				RGBColor::BLACK), TextColor(RGBColor::WHITE), startTick(0) {
 }
 
-GUI::GUI(DisplayST7735 *display) :
-		Display(display) {
-
-}
-
 bool GUI::init() {
 	return true;
 }
