@@ -1,6 +1,10 @@
 #include "gui.h"
+#include <cstdint>
 
 using namespace cmdc0de;
+
+extern uint32_t HAL_GetTick(void);
+
 
 void GUIListItemData::setShouldScroll() {
 	if (shouldScroll()) {

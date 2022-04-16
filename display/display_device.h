@@ -2,10 +2,12 @@
 #define DCDARKNET_DISPLAY_DEVICE_H
 
 #include "../error_type.h"
-#include "../utility/pin.h"
 #include "fonts.h"
 #include "../utility/bitarray.h"
 #include "../rgbcolor.h"
+#if !defined VIRTUAL_DEVICE
+#include "../utility/pin.h"
+#endif
 
 namespace cmdc0de {
 
@@ -82,12 +84,14 @@ public:
 	 * So we don't have to take the memory to store this data again
 	 */
 	class HardwareConfig {
+#if !defined VIRTUAL_DEVICE
 	public:
 		static SPI_HandleTypeDef *getSPI();
 		static const PinConfig &getDataCmd();
 		static const PinConfig &getCS();
 		static const PinConfig &getBackLit();
 		static const PinConfig &getReset();
+#endif
 	};
 	/*
 	 * Allows us to have different frame buffer types to make optimal use of memory

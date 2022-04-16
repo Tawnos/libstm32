@@ -156,6 +156,7 @@ bool DisplayST7735::FrameBuf::writeNData(const uint8_t *data, int nbytes) {
 }
 
 bool DisplayST7735::FrameBuf::writeN(char dc, const uint8_t *data, int nbytes) {
+#if !defined VIRTUAL_DEVICE
 	if (dc == 1) { //dc 1=data 0 = control
 		HAL_GPIO_WritePin(HardwareConfig::getDataCmd().Port, HardwareConfig::getDataCmd().Pin, GPIO_PIN_SET);
 	} else {
@@ -166,6 +167,7 @@ bool DisplayST7735::FrameBuf::writeN(char dc, const uint8_t *data, int nbytes) {
 		return false;
 	}
 	HAL_GPIO_WritePin(HardwareConfig::getCS().Port, HardwareConfig::getCS().Pin, GPIO_PIN_SET);
+#endif
 	return true;
 }
 
@@ -520,10 +522,13 @@ bool DisplayST7735::drawPixel(uint16_t x0, uint16_t y0, const RGBColor &color) {
 }
 
 void DisplayST7735::setBackLightOn(bool on) {
+#if !defined VIRTUAL_DEVICE
+
 	if (on)
 		HAL_GPIO_WritePin(HardwareConfig::getBackLit().Port, HardwareConfig::getBackLit().Pin, GPIO_PIN_SET);
 	else
 		HAL_GPIO_WritePin(HardwareConfig::getBackLit().Port, HardwareConfig::getBackLit().Pin, GPIO_PIN_RESET);
+#endif
 }
 
 
@@ -536,6 +541,8 @@ void DisplayST7735::setMemoryAccessControl() {
 }
 
 void DisplayST7735::reset() {
+#if !defined VIRTUAL_DEVICE
+
 	//clear chip select
 	HAL_GPIO_WritePin(HardwareConfig::getCS().Port, HardwareConfig::getCS().Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(HardwareConfig::getReset().Port, HardwareConfig::getReset().Pin, GPIO_PIN_SET);
@@ -554,6 +561,7 @@ void DisplayST7735::reset() {
 		if (cmd->delay)
 			HAL_Delay(cmd->delay);
 	}
+#endif
 }
 
 ErrorType DisplayST7735::init(uint8_t pf, const FontDef_t *defaultFont, DisplayST7735::FrameBuf *fb) {

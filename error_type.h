@@ -1,7 +1,7 @@
 #ifndef ERROR_TYPE_H
 #define ERROR_TYPE_H
 
-#include <stdint.h>
+#include <cstdint>
 #include "facility_types.h"
 
 namespace cmdc0de {
@@ -10,7 +10,7 @@ namespace cmdc0de {
 class ErrorType {
 public:
 	typedef uint32_t ErrorNum;
-	static const uint32_t NO_ERROR = 0;
+	//static const uint32_t NO_ERROR{ 0 };
 public:
 	ErrorType();
 	ErrorType(const Facility &f);

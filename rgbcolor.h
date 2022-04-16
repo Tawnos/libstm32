@@ -43,7 +43,8 @@ private:
 	uint8_t R, G, B;
 };
 
-
+#undef RGB
+#pragma pack(push, 1)
 class RGB {
 public:
 	static const RGB WHITE;
@@ -53,22 +54,23 @@ public:
 public:
 	RGB() : B(0), G(0), R(0), Brightness(100) {}
 	RGB(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness) : B(b), G(g), R(r), Brightness(brightness) {}
-	RGB(const RGB &r) : B(r.B), G(r.G), R(r.R), Brightness(r.Brightness) {}
-	RGB &operator=(const RGB &r) {B = r.B;G = r.G;R = r.R;Brightness = r.Brightness;return (*this);}
-	uint8_t getBlue()  {return B;}
-	uint8_t getRed()   {return R;}
-	uint8_t getGreen() {return G;}
-	uint8_t getBrightness() {return Brightness;}
-	void setBlue(uint8_t v) 	{B=v;}
-	void setRed(uint8_t v)  	{R=v;}
-	void setGreen(uint8_t v) 	{G=v;}
-	void setBrightness(uint8_t v)	{Brightness=((v>100)?100:v);}
+	RGB(const RGB& r) : B(r.B), G(r.G), R(r.R), Brightness(r.Brightness) {}
+	RGB& operator=(const RGB& r) { B = r.B; G = r.G; R = r.R; Brightness = r.Brightness; return (*this); }
+	uint8_t getBlue() { return B; }
+	uint8_t getRed() { return R; }
+	uint8_t getGreen() { return G; }
+	uint8_t getBrightness() { return Brightness; }
+	void setBlue(uint8_t v) { B = v; }
+	void setRed(uint8_t v) { R = v; }
+	void setGreen(uint8_t v) { G = v; }
+	void setBrightness(uint8_t v) { Brightness = ((v > 100) ? 100 : v); }
 private:
 	uint8_t B;
 	uint8_t G;
 	uint8_t R;
 	uint8_t Brightness;
-} __attribute__((packed));
+}; 
+#pragma pack(pop)
 
 }
 
