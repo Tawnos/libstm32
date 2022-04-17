@@ -381,7 +381,7 @@ namespace cmdc0de {
 			//
 		};
 	public:
-		DisplayST7735(uint16_t w, uint16_t h, ROTATION r) :
+		DisplayST7735(uint16_t w, uint16_t h, cmdc0de::Rotation r) :
 			DisplayDevice(w, h, r), CurrentTextColor(RGBColor::WHITE), CurrentBGColor(RGBColor::BLACK), CurrentFont(0), FB(0) { }
 
 		ErrorType init(uint8_t pf, const FontDef_t* defaultFont, FrameBuf*);

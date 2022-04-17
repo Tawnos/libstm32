@@ -13,8 +13,12 @@
 namespace cmdc0de {
 
   ///enumeration of pixel formats for interface pixel command
-  enum PIXEL_FORMAT {
-    FORMAT_12_BIT = 0b011, FORMAT_16_BIT = 0b101, FORMAT_18_BIT = 0b110
+  enum class PixelFormat {
+    TwelveBit = 0b011, SixteenBit = 0b101, EighteenBit = 0b110
+  };
+
+  enum class Rotation {
+    PortraitTopLeft = 0, LandscapeTopLeft = 1
   };
 
   struct DCImage {
@@ -33,11 +37,8 @@ namespace cmdc0de {
    */
   class DisplayDevice {
   public:
-    enum ROTATION {
-      PORTAIT_TOP_LEFT = 0, LANDSCAPE_TOP_LEFT = 1
-    };
   public:
-    DisplayDevice(uint16_t w, uint16_t h, ROTATION r) :
+    DisplayDevice(uint16_t w, uint16_t h, Rotation r) :
       Width(w), Height(h), Rotation(r), RefreshTopToBot(0) {
     }
     virtual ~DisplayDevice() = default;
@@ -48,10 +49,10 @@ namespace cmdc0de {
     constexpr uint16_t getHeight() {
       return Height;
     }
-    constexpr ROTATION getRotation() {
-      return Rotation == 0 ? PORTAIT_TOP_LEFT : LANDSCAPE_TOP_LEFT;
+    constexpr Rotation getRotation() {
+      return Rotation;
     }
-    constexpr void setRotation(ROTATION r, bool swapHeightWidth) {
+    constexpr void setRotation(Rotation r, bool swapHeightWidth) {
       Rotation = r;
       if (swapHeightWidth) {
         uint16_t tmp = Height;
@@ -83,7 +84,7 @@ namespace cmdc0de {
   private:
     uint16_t Width;
     uint16_t Height;
-    uint32_t Rotation : 3;
+    Rotation Rotation : 3;
     uint32_t RefreshTopToBot : 1;
   };
 
@@ -94,13 +95,13 @@ namespace cmdc0de {
     constexpr uint8_t* getPackedColorData() { return &Color[0]; }
     constexpr uint8_t getSize() { return SizeInBytes; }
   public:
-    static PackedColor create(uint8_t pixelFormat, const RGBColor& c) {
+    static PackedColor create(PixelFormat pixelFormat, const RGBColor& c) {
       PackedColor pc;
       switch (pixelFormat) {
-      case FORMAT_12_BIT:
+      case PixelFormat::TwelveBit:
         pc.SizeInBytes = 2;
         break;
-      case FORMAT_16_BIT: {
+      case PixelFormat::SixteenBit: {
         uint16_t tmp;
         tmp = (c.getR() & 0b11111) << 11;
         tmp |= (c.getG() & 0b111111) << 5;
@@ -109,8 +110,8 @@ namespace cmdc0de {
         pc.Color[1] = tmp & 0xFF;
         pc.SizeInBytes = 2;
       }
-                        break;
-      case FORMAT_18_BIT:
+                                      break;
+      case PixelFormat::EighteenBit:
         pc.Color[0] = c.getR() << 2;
         pc.Color[1] = c.getG() << 2;
         pc.Color[2] = c.getB() << 2;
@@ -136,7 +137,7 @@ namespace cmdc0de {
   class FrameBuf {
   public:
     FrameBuf(DisplayDevice* d, uint16_t* SPIBuffer)
-      : Display(d), SPIBuffer(SPIBuffer), PixelFormat(0), MemoryAccessControl(1) /*1 is not valid*/ {	}
+      : Display(d), SPIBuffer(SPIBuffer), PixelFormat(PixelFormat::TwelveBit), MemoryAccessControl(1) /*1 is not valid*/ {	}
     virtual ~FrameBuf() = default;
     virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
       const RGBColor& color) = 0;
@@ -156,9 +157,9 @@ namespace cmdc0de {
     bool writeN(char dc, const uint8_t* data, int nbytes);
 
     /////////////////////////////////////////
-    // uint8_t to save space format is one of the value in the PIXEL_FORMAT ENUM
-    constexpr void setPixelFormat(uint8_t pf) { PixelFormat = pf; }
-    constexpr uint8_t getPixelFormat() const { return PixelFormat; }
+    // uint8_t to save space format is one of the value in the PixelFormat ENUM
+    constexpr void setPixelFormat(PixelFormat pf) { PixelFormat = pf; }
+    constexpr PixelFormat getPixelFormat() const { return PixelFormat; }
     void setMemoryAccessControl();
     constexpr DisplayDevice* getDisplay() { return Display; }
 
@@ -166,7 +167,7 @@ namespace cmdc0de {
     uint16_t* SPIBuffer;
   private:
     DisplayDevice* Display;
-    uint8_t PixelFormat;
+    PixelFormat PixelFormat;
     uint8_t MemoryAccessControl;
 
     friend class DisplayDevice;

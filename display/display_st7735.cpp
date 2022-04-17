@@ -26,10 +26,10 @@ void DisplayST7735::FrameBuf::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x
 void DisplayST7735::FrameBuf::setMemoryAccessControl() {
 	uint8_t macctl = 0;
 	switch (Display->getRotation()) {
-	case LANDSCAPE_TOP_LEFT:
+	case LandscapeTopLeft:
 		macctl = DisplayST7735::MADCTL_MV | DisplayST7735::MADCTL_MX;
 		break;
-	case PORTAIT_TOP_LEFT:
+	case PortraitTopLeft:
 	default:
 		break;
 	}
