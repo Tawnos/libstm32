@@ -4,12 +4,6 @@
 using namespace cmdc0de;
 
 //=======================================================================
-DisplayMessageState::DisplayMessageState() :
-		TimeInState(DEFAULT_TIME_IN_STATE), NextState(0), Display(0) {
-}
-
-DisplayMessageState::~DisplayMessageState() {
-}
 
 ErrorType DisplayMessageState::onInit() {
 	getDisplay().fillScreen(RGBColor::BLACK);

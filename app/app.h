@@ -16,8 +16,8 @@ protected:
 	virtual ErrorType onInit()=0;
 	virtual ErrorType onRun()=0;
 	StateBase *getCurrentState() {return CurrentState;}
-	App();
-	virtual ~App() {}
+	App() : CurrentState(0), LastRunTime(0), LastRunPerformance(0) { }
+	virtual ~App() = default;
 	void setCurrentState(StateBase *cs) {CurrentState = cs;}
 private:
 	StateBase *CurrentState;

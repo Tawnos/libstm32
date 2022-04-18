@@ -10,14 +10,29 @@ namespace cmdc0de {
 class ErrorType {
 public:
 	typedef uint32_t ErrorNum;
-	//static const uint32_t NO_ERROR{ 0 };
+	static const uint32_t NoError{ 0 };
 public:
-	ErrorType();
-	ErrorType(const Facility &f);
-	ErrorType(const Facility &f, const uint32_t &en);
-	ErrorType(const ErrorType &r);
-	bool ok();
-	ErrorType &operator=(const ErrorType &r);
+	ErrorType() :
+		FacilityNum(Facility::ERROR_FACILITY_GENERAL), ErrorNumber(ErrorType::NoError) {
+	}
+
+	ErrorType(const Facility& f) : FacilityNum(f), ErrorNumber(ErrorType::NoError) {
+
+	}
+
+	ErrorType(const Facility& f, const ErrorNum& en) : FacilityNum(f), ErrorNumber(en) {
+
+	}
+
+	bool ok() { return ErrorNumber == ErrorType::NoError; }
+
+	ErrorType(const ErrorType& r) { (*this) = r; }
+
+	ErrorType& operator=(const ErrorType& r) {
+		ErrorNumber = r.ErrorNumber;
+		return (*this);
+	}
+
 	uint8_t getError() {
 		return ErrorNumber;
 	}

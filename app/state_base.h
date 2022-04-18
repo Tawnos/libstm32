@@ -37,11 +37,15 @@ public:
 		ErrorType Err;
 	};
 public:
-	StateBase();
+	StateBase() :
+		StateData(0), 
+		TimesRunCalledAllTime(0), 
+		TimesRunCalledSinceLastReset(0), 
+		StateStartTime(0) {}
 	ReturnStateContext run();
 	uint32_t timeInState();
 	ErrorType shutdown();
-	virtual ~StateBase();
+	virtual ~StateBase() = default;
 protected:
 	static const uint32_t INIT_BIT = 0x01;
 	static const uint32_t DONT_RESET = 0x02;

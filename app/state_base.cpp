@@ -5,10 +5,6 @@
 
 using namespace cmdc0de;
 
-StateBase::StateBase() :
-		StateData(0), TimesRunCalledAllTime(0), TimesRunCalledSinceLastReset(0), StateStartTime(0) {
-}
-
 StateBase::ReturnStateContext StateBase::run() {
 	++TimesRunCalledAllTime;
 	ReturnStateContext sr(this);
@@ -27,9 +23,6 @@ StateBase::ReturnStateContext StateBase::run() {
 		}
 	}
 	return sr;
-}
-
-StateBase::~StateBase() {
 }
 
 ErrorType StateBase::init() {

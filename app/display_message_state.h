@@ -11,8 +11,8 @@ class DisplayMessageState: public StateBase {
 public:
 	static const uint16_t DEFAULT_TIME_IN_STATE = 3000;
 public:
-	DisplayMessageState();
-	virtual ~DisplayMessageState();
+	DisplayMessageState() = default;
+	virtual ~DisplayMessageState() = default;
 	void setMessage(const char *msg);
 	void setTimeInState(uint16_t t) {
 		TimeInState = t;
@@ -33,9 +33,9 @@ protected:
 	virtual ErrorType onShutdown();
 private:
 	char Message[64];
-	uint16_t TimeInState;
-	StateBase *NextState;
-	DisplayDevice *Display;
+	uint16_t TimeInState{ DEFAULT_TIME_IN_STATE };
+	StateBase* NextState{ 0 };
+  DisplayDevice* Display{ 0 };
 };
 
 
