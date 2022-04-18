@@ -81,6 +81,7 @@ namespace cmdc0de {
     virtual const FontDef_t* getFont() = 0;
     virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w) = 0;
     virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, RGBColor color) = 0;
+    virtual void swap() = 0;
   protected:
   private:
     uint16_t Width;
@@ -146,10 +147,10 @@ namespace cmdc0de {
       const RGBColor& color) = 0;
     virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w,
       const RGBColor& color) = 0;
-    virtual void swap() = 0;
     virtual bool drawPixel(uint16_t x0, uint16_t y0,
       const RGBColor& color) = 0;
     virtual void drawImage(int16_t x, int16_t y, const DCImage& dc) = 0;
+    virtual void swap() = 0;
   protected:
     void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
     bool writeCmd(uint8_t c);
