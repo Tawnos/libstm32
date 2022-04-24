@@ -1,4 +1,5 @@
 #include "display_device.h"
+#include "framebuf.h"
 #include "../rgbcolor.h"
 #include "../config.h"
 #include "../logger.h"
@@ -7,90 +8,17 @@
 //#include <diag/Trace.h>
 
 namespace cmdc0de {
-	//////////////////////////////////////////////////////////////////////
-
-	bool DrawBufferNoBuffer::drawPixel(uint16_t x0, uint16_t y0, const RGBColor& color) {
-		PackedColor pc = PackedColor::create(getPixelFormat(), color);
-		setAddrWindow(x0, y0, x0, y0);
-		return writeNData(pc.getPackedColorData(), pc.getSize());
-	}
-
-	void DrawBufferNoBuffer::drawImage(int16_t x, int16_t y, const DCImage& dc) {
-		setAddrWindow(0, 0, dc.width, dc.height);
-		writeNData((const uint8_t*)&dc.pixel_data[0], dc.height * dc.width * dc.bytes_per_pixel);
-	}
-
-	void DrawBufferNoBuffer::fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) {
-		setAddrWindow(x, y, w, h);
-		PackedColor pc = PackedColor::create(getPixelFormat(), color);
-
-		uint16_t pcolor = *((uint16_t*)(pc.getPackedColorData()));
-		uint16_t pixelCount = w * h;
-		uint16_t maxAtOnce =
-			pixelCount > (RowsForDrawBuffer * getDisplay()->getWidth()) ?
-			(RowsForDrawBuffer * getDisplay()->getWidth()) : pixelCount;
-		for (uint16_t i = 0; i < maxAtOnce; ++i) {
-			SPIBuffer[i] = pcolor;
-		}
-
-		uint16_t pixelCopied = 0;
-		do {
-			writeNData((uint8_t*)&SPIBuffer[0], maxAtOnce * sizeof(uint16_t));
-			pixelCopied += maxAtOnce;
-
-			if ((pixelCopied + maxAtOnce) > pixelCount) {
-				maxAtOnce = pixelCount - pixelCopied;
-			}
-		} while (pixelCopied < pixelCount);
-	}
-
-	void DrawBufferNoBuffer::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) {
-		PackedColor pc = PackedColor::create(getPixelFormat(), color);
-
-		uint16_t pcolor = *((uint16_t*)(pc.getPackedColorData()));
-		uint16_t pixelCount = h;
-		uint16_t maxAtOnce =
-			pixelCount > (RowsForDrawBuffer * getDisplay()->getWidth()) ?
-			(RowsForDrawBuffer * getDisplay()->getWidth()) : pixelCount;
-		for (uint16_t i = 0; i < maxAtOnce; ++i) {
-			SPIBuffer[i] = pcolor;
-		}
-
-		uint16_t pixelCopied = 0;
-		setAddrWindow(x, y, x, y + h - 1);
-		do {
-			writeNData((uint8_t*)&SPIBuffer[0], maxAtOnce * sizeof(uint16_t));
-			pixelCopied += maxAtOnce;
-
-			if ((pixelCopied + maxAtOnce) > pixelCount) {
-				maxAtOnce = pixelCount - pixelCopied;
-			}
-		} while (pixelCopied < pixelCount);
-	}
-
-	void DrawBufferNoBuffer::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) {
-		PackedColor pc = PackedColor::create(getPixelFormat(), color);
-
-		uint16_t pcolor = *((uint16_t*)(pc.getPackedColorData()));
-		for (uint16_t i = 0; i < w; ++i) {
-			SPIBuffer[i] = pcolor;
-		}
-
-		setAddrWindow(x, y, x + w - 1, y);
-		writeNData((uint8_t*)&SPIBuffer[0], w * sizeof(uint16_t));
-	}
-
 	bool DrawBuffer2D16BitColor::drawPixel(uint16_t x, uint16_t y, const RGBColor& color) {
 		uint8_t c = deresColor(color);
-		BackBuffer.setValueAsByte((y * Width) + x, c);
+		BackBuffer.setValueAsByte((y * Display->getWidth()) + x, c);
 		DrawBlocksChanged.setValueAsByte(y / RowsForDrawBuffer, 1);
 		return true;
 	}
 
-	//not using buffer just write directly to SPI
 	void DrawBuffer2D16BitColor::drawImage(int16_t x, int16_t y, const DCImage& dc) {
-		setAddrWindow(0, 0, dc.width - 1, dc.height - 1);
-		writeNData((const uint8_t*)&dc.pixel_data[0], dc.height * dc.width * dc.bytes_per_pixel);
+		//setAddrWindow(0, 0, dc.width - 1, dc.height - 1);
+		memcpy(SPIBuffer, (const uint8_t*)dc.pixel_data, dc.height * dc.width * dc.bytes_per_pixel);
+		swap();
 		DrawBlocksChanged.clear();
 	}
 
@@ -98,7 +26,7 @@ namespace cmdc0de {
 		uint8_t c = deresColor(color);
 		for (int i = y; i < (h + y); ++i) {
 			//OPTIMIZE THIS BY MAKING A SET RANGE IN BITARRAY
-			uint32_t offset = i * getDisplay()->getWidth();
+			uint32_t offset = i * Display->getWidth();
 			for (int j = 0; j < w; ++j) {
 				BackBuffer.setValueAsByte(offset + x + j, c);
 			}
@@ -109,14 +37,14 @@ namespace cmdc0de {
 	void DrawBuffer2D16BitColor::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) {
 		uint8_t c = deresColor(color);
 		for (int i = y; i < (h + y); ++i) {
-			BackBuffer.setValueAsByte(i * getDisplay()->getWidth() + x, c);
+			BackBuffer.setValueAsByte(i * Display->getWidth() + x, c);
 			DrawBlocksChanged.setValueAsByte(i / RowsForDrawBuffer, 1);
 		}
 	}
 
 	void DrawBuffer2D16BitColor::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) {
 		uint8_t c = deresColor(color);
-		uint32_t offset = y * getDisplay()->getWidth();
+		uint32_t offset = y * Display->getWidth();
 		for (int i = x; i < (x + w); ++i) {
 			BackBuffer.setValueAsByte(offset + i, c);
 		}
@@ -128,16 +56,17 @@ namespace cmdc0de {
 	// if we did change something convert from our short hand notation to something the LCD will understand
 	//	then send to LCD
 	void DrawBuffer2D16BitColor::swap() {
-		for (int h = 0; h < Height; h++) {
+		for (int h = 0; h < Display->getHeight(); h++) {
 			if ((DrawBlocksChanged.getValueAsByte(h / RowsForDrawBuffer)) != 0) {
-				for (int w = 0; w < Width; w++) {
+				for (int w = 0; w < Display->getWidth(); w++) {
 					uint32_t SPIY = h % RowsForDrawBuffer;
-					SPIBuffer[(SPIY * Width) + w] = calcLCDColor(BackBuffer.getValueAsByte((h * Width) + w));
+					SPIBuffer[(SPIY * Display->getWidth()) + w] = calcLCDColor(BackBuffer.getValueAsByte((h * Display->getWidth()) + w));
 				}
-				if (h != 0 && (h % RowsForDrawBuffer == (RowsForDrawBuffer - 1))) {
+				Display->update();
+				/*if (h != 0 && (h % RowsForDrawBuffer == (RowsForDrawBuffer - 1))) {
 					setAddrWindow(0, h - (RowsForDrawBuffer - 1), Width, h);
 					writeNData((uint8_t*)&SPIBuffer[0], Width * RowsForDrawBuffer * sizeof(uint16_t));
-				}
+				}*/
 			}
 		}
 		DrawBlocksChanged.clear();
@@ -149,7 +78,7 @@ namespace cmdc0de {
 		uint32_t gc = (packedColor & GREEN_MASK) >> 2;
 		uint32_t bc = packedColor & BLUE_MASK;
 		RGBColor lcdColor(colorValues[rc], colorValues[gc], colorValues[bc]);
-		uint8_t* packedData = PackedColor::create(getPixelFormat(), lcdColor).getPackedColorData();
+		uint8_t* packedData = PackedColor::create(PixelFormat, lcdColor).getPackedColorData();
 		uint16_t* pcd = (uint16_t*)packedData;
 		return *pcd;
 	}
@@ -165,7 +94,7 @@ namespace cmdc0de {
 	/////////////////////////////////////////
 
 	bool DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawPixel(uint16_t x, uint16_t y, const RGBColor& color) {
-		SPIBuffer[(y * Width) + x] = calcLCDColor(color);
+		SPIBuffer[(y * Display->getWidth()) + x] = calcLCDColor(color);
 		return true;
 	}
 
@@ -181,9 +110,9 @@ namespace cmdc0de {
 				RGBColor c(((t[(y * dc.height) + x] & 0b1111100000000000) >> 11),
 					((t[(y * dc.height) + x] & 0b0000011111100000) >> 5),
 					((t[(y * dc.height) + x] & 0b0000000000011111)));
-				uint8_t* packedData = PackedColor::create(getPixelFormat(), c).getPackedColorData();
+				uint8_t* packedData = PackedColor::create(PixelFormat, c).getPackedColorData();
 				uint16_t* pcd = (uint16_t*)packedData;
-				SPIBuffer[((y + y1) * Width) + (x + x1)] = (*pcd);
+				SPIBuffer[((y + y1) * Display->getWidth()) + (x + x1)] = (*pcd);
 			}
 		}
 #endif
@@ -193,7 +122,7 @@ namespace cmdc0de {
 		uint16_t c = calcLCDColor(color);
 		for (int i = y; i < (h + y); ++i) {
 			//OPTIMIZE THIS BY MAKING A SET RANGE IN BITARRAY
-			uint32_t offset = i * getDisplay()->getWidth();
+			uint32_t offset = i * Display->getWidth();
 			for (int j = 0; j < w; ++j) {
 				SPIBuffer[offset + x + j] = c;
 			}
@@ -203,13 +132,13 @@ namespace cmdc0de {
 	void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) {
 		uint16_t c = calcLCDColor(color);
 		for (int i = y; i < (h + y); ++i) {
-			SPIBuffer[i * getDisplay()->getWidth() + x] = c;
+			SPIBuffer[i * Display->getWidth() + x] = c;
 		}
 	}
 
 	void DrawBuffer2D16BitColor16BitPerPixel1Buffer::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) {
 		uint16_t c = calcLCDColor(color);
-		uint32_t offset = y * getDisplay()->getWidth();
+		uint32_t offset = y * Display->getWidth();
 		for (int i = x; i < (x + w); ++i) {
 			SPIBuffer[offset + i] = c;
 		}
@@ -217,8 +146,9 @@ namespace cmdc0de {
 
 	void DrawBuffer2D16BitColor16BitPerPixel1Buffer::swap() {
 		if (/*anychange*/ 1) {
-			setAddrWindow(0, 0, Width, Height);
-			writeNData((uint8_t*)&SPIBuffer[0], BufferSize);
+			/*setAddrWindow(0, 0, Display->getWidth(), Display->getHeight());
+			writeNData((uint8_t*)&SPIBuffer[0], BufferSize);*/
+			Display->update();
 		}
 	}
 
@@ -227,7 +157,7 @@ namespace cmdc0de {
 		uint32_t gc = color.getG() / 4; //keep it in 6 bits
 		uint32_t bc = color.getB() / 8; //keep it in 5 bits
 		RGBColor lcdColor(rc, gc, bc);
-		uint8_t* packedData = PackedColor::create(getPixelFormat(), lcdColor).getPackedColorData();
+		uint8_t* packedData = PackedColor::create(PixelFormat, lcdColor).getPackedColorData();
 		uint16_t* pcd = (uint16_t*)packedData;
 		return *pcd;
 	}

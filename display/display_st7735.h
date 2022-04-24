@@ -2,6 +2,7 @@
 #define DCDARKNET_DISPLAY_ST7735_H
 
 #include "display_device.h"
+#include "framebuf.h"
 #include "assert.h"
 
 namespace cmdc0de {
@@ -381,62 +382,37 @@ namespace cmdc0de {
 			//
 		};
 	public:
-		DisplayST7735(uint16_t w, uint16_t h, cmdc0de::Rotation r) :
-			DisplayDevice(w, h, r), CurrentTextColor(RGBColor::WHITE), CurrentBGColor(RGBColor::BLACK), CurrentFont(0), FB(0) { }
-
-		ErrorType init(uint8_t pf, const FontDef_t* defaultFont, FrameBuf*);
+		DisplayST7735(uint16_t w, uint16_t h, cmdc0de::RotationType r) :
+			DisplayDevice(w, h, r) { }
 		virtual ~DisplayST7735() = default;
-		virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor& color);
-		virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color);
-		virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color);
-		void fillScreen(const RGBColor& color);
-		void drawImage(int16_t x, int16_t y, const DCImage& dcImage);
-		void setMemoryAccessControl();
+
+		virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor& color) override;
+		virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) override;
+		virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) override;
+		void fillScreen(const RGBColor& color) override;
+		void drawImage(int16_t x, int16_t y, const DCImage& dcImage) override;
 		//////////////////////////////////////////
-		void setFrameBuffer(FrameBuf* fb) {
-			FB = fb;
-		}
-		const FrameBuf* getFrameBuffer() const {
-			return FB;
-		}
-		void swap();
-		void reset();
+		void update() override;
+		void reset() override;
 		///////////////////////////////////////////////////////
 		void drawVerticalLine(int16_t x, int16_t y, int16_t h);
-		void drawVerticalLine(int16_t x, int16_t y, int16_t h,
-			const RGBColor& color);
-		void drawHorizontalLine(int16_t x, int16_t y, int16_t w);
-		void drawHorizontalLine(int16_t x, int16_t y, int16_t w,
-			const RGBColor& color);
+		void drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color);
+		void drawHorizontalLine(int16_t x, int16_t y, int16_t w) override;
+		void drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) override;
 		//xPos and yPos are the pixel offsets, for each character drawn xPos is increased by the width of the current font
 		//
-		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt);
-		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor);
-		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size, bool lineWrap);
-		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& backGroundColor, uint8_t size, bool lineWrap, uint8_t charsToRender);
-		uint32_t drawStringOnLine(uint8_t line, const char* msg);
+		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt) override;
+		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor) override;
+		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size, bool lineWrap) override;
+		uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& backGroundColor, uint8_t size, bool lineWrap, uint8_t charsToRender) override;
+		uint32_t drawStringOnLine(uint8_t line, const char* msg) override;
 		//x and y are pixel locations
 		void drawCharAtPosition(int16_t x, int16_t y, char c,
 			const RGBColor& textColor, const RGBColor& bgColor, uint8_t size);
-		void setTextColor(const RGBColor& t);
-		void setBackgroundColor(const RGBColor& t);
-		const RGBColor& getTextColor();
-		const RGBColor& getBackgroundColor();
-		void setBackLightOn(bool on);
-		void setFont(const FontDef_t* font);
-		const FontDef_t* getFont() {
-			return CurrentFont;
-		}
-		const uint8_t* getFontData();
-	protected:
-		FrameBuf* getFrameBuffer() {
-			return FB;
-		}
-	private:
-		RGBColor CurrentTextColor;
-		RGBColor CurrentBGColor;
-		const FontDef_t* CurrentFont;
-		FrameBuf* FB;
+		private: 
+			void setMemoryAccessControl();
+			ErrorType onInit() override;
+			void setBackLightOn(bool on);
 	};
 
 	static const struct sCmdBuf initializers[] = {
@@ -485,6 +461,32 @@ namespace cmdc0de {
 								{ DisplayST7735::NORMAL_DISPLAY_MODE_ON, 10, 0, 0 },
 								// End
 								{ 0, 0, 0, 0 } };
+
+
+	/*
+	 * @author cmdc0de
+	 * @date 6/2/17
+	 * Pass through frame buffer, basically no buffer every pixel goes
+	 * directly to SPI bus
+	 */
+	class DrawBufferNoBuffer : public FrameBuf {
+	public:
+		DrawBufferNoBuffer(DisplayDevice* d, uint16_t* optimizedFillBuf, uint8_t rowsForDrawBuffer, cmdc0de::PixelFormat pf = PixelFormat::TwelveBit)
+			: FrameBuf(d, optimizedFillBuf, d->getWidth()* d->getHeight(), pf),
+				RowsForDrawBuffer(rowsForDrawBuffer) { }
+		virtual ~DrawBufferNoBuffer() = default;
+		virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor& color);
+		virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h,
+			const RGBColor& color);
+		virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w,
+			const RGBColor& color);
+		virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
+			const RGBColor& color);
+		virtual void swap() override;
+		virtual void drawImage(int16_t x, int16_t y, const DCImage& dc);
+	private:
+		uint8_t RowsForDrawBuffer;
+	};
 
 }
 #endif
