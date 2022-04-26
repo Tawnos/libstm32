@@ -115,6 +115,7 @@ namespace cmdc0de {
 				SPIBuffer[((y + y1) * Display->getWidth()) + (x + x1)] = (*pcd);
 			}
 		}
+		Display->update();
 #endif
 	}
 

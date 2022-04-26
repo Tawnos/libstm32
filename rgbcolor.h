@@ -37,8 +37,13 @@ public:
 		B = r.getB();
 		return *this;
 	}
-	bool operator==(const RGBColor &r) const;
-	bool operator!=(const RGBColor &r) const;
+	bool operator==(const RGBColor& r) const {
+		return (r.R == R && r.G == G && r.B == B);
+	}
+
+	bool operator!=(const RGBColor& r) const {
+		return !((*this) == r);
+	}
 private:
 	uint8_t R, G, B;
 };

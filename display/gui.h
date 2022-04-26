@@ -25,30 +25,24 @@ namespace cmdc0de {
   public:
     GUIListItemData(uint8_t id1, const char* msg, bool scroll,
       uint16_t timeBetwenScrolls) :
-      id(id1), text(msg), Scrollable(scroll), TimeBetweenScroll(
-        timeBetwenScrolls), LastScrollTime(0), LastScrollPosition(0) {
-
-    }
+      id(id1), 
+      text(msg), 
+      Scrollable(scroll), 
+      TimeBetweenScroll(timeBetwenScrolls) { }
     GUIListItemData(uint8_t id, const char* msg) :
-      Scrollable(0), TimeBetweenScroll(1000), LastScrollTime(0), LastScrollPosition(
-        0) {
-      this->id = id;
-      text = msg;
-    }
-    GUIListItemData() :
-      id(0), text(0), Scrollable(0), TimeBetweenScroll(1000), LastScrollTime(
-        0), LastScrollPosition(0) {
-    }
+      id(id),
+      text(msg) { }
+    GUIListItemData() {}
     void set(uint8_t n, const char* msg) {
       id = n;
       text = msg;
     }
-    uint16_t id; /*!< Item's id */
-    const char* text; /*!< Item's text*/
-    uint16_t Scrollable : 1;
-    uint16_t TimeBetweenScroll : 12;
-    uint32_t LastScrollTime;
-    uint8_t LastScrollPosition;
+    uint16_t id{0}; /*!< Item's id */
+    const char* text{0}; /*!< Item's text*/
+    uint16_t Scrollable : 1{0};
+    uint16_t TimeBetweenScroll : 12{1000};
+    uint32_t LastScrollTime{0};
+    uint8_t LastScrollPosition{0};
     const char* getScrollOffset();
     void setShouldScroll();
     bool shouldScroll();
@@ -61,17 +55,23 @@ namespace cmdc0de {
 
   class GUIListData {
   public:
-    GUIListData(const char* h, GUIListItemData* is, uint8_t x, uint8_t y,
-      uint8_t w, uint8_t height, uint8_t si, uint8_t ic) :
-      header(h),
-      items(is),
-      x(x),
-      y(y),
-      w(w),
-      h(height),
-      selectedItem(si),
-      ItemsCount(ic) {
-    }
+    GUIListData(
+      const char* h, 
+      GUIListItemData* is, 
+      uint8_t x, 
+      uint8_t y,
+      uint8_t w, 
+      uint8_t height, 
+      uint8_t si, 
+      uint8_t ic
+    ) : header(h),
+        items(is),
+        x(x),
+        y(y),
+        w(w),
+        h(height),
+        selectedItem(si),
+        ItemsCount(ic) { }
     const char* header; /*!< Header*/
     GUIListItemData* items; /*!< Item's array*/
     uint16_t ItemsCount; /*!< Item's array*/

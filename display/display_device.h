@@ -1,5 +1,8 @@
+#pragma once
 #ifndef DCDARKNET_DISPLAY_DEVICE_H
 #define DCDARKNET_DISPLAY_DEVICE_H
+
+#include "common.h"
 
 #include "../error_type.h"
 #include "fonts.h"
@@ -13,12 +16,6 @@
 namespace cmdc0de
 {
   class FrameBuf;
-
-  enum class RotationType
-  {
-    PortraitTopLeft = 0,
-    LandscapeTopLeft = 1
-  };
 
   struct DCImage
   {
@@ -132,9 +129,9 @@ namespace cmdc0de
 
   protected:
     virtual ErrorType onInit() { return ErrorType{}; };
-    uint16_t Width;
-    uint16_t Height;
-    RotationType RotationType : 3;
+    uint16_t Width{ cmdc0de::DISPLAY_WIDTH };
+    uint16_t Height{ cmdc0de::DISPLAY_HEIGHT};
+    RotationType RotationType : 3{cmdc0de::START_ROT};
     uint32_t RefreshTopToBot : 1;
 
     RGBColor CurrentTextColor{ cmdc0de::RGBColor::WHITE };

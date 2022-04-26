@@ -1,4 +1,3 @@
-
 #include <string.h>
 #include "../config.h"
 #include "state_base.h"
@@ -38,9 +37,5 @@ ErrorType StateBase::shutdown() {
 	clearState(INIT_BIT);
 	StateStartTime = 0;
 	return et;
-}
-
-uint32_t StateBase::timeInState() {
-	return HAL_GetTick() - StateStartTime;
 }
 
