@@ -1,10 +1,10 @@
 #ifndef CMDC0DE_DISPLAY_MESSAGE_STATE_H
 #define CMDC0DE_DISPLAY_MESSAGE_STATE_H
 
-#include "../display/display_device.h"
 #include "state_base.h"
 #include <string.h>
-#include <libstm32/rgbcolor.cpp>
+#include <rgbcolor.h>
+#include <display_device.h>
 
 namespace cmdc0de {
 
@@ -14,7 +14,6 @@ namespace cmdc0de {
   public:
     static const uint16_t DEFAULT_TIME_IN_STATE = 3000;
   public:
-    DisplayMessageState() = default;
     virtual ~DisplayMessageState() = default;
 
     void setMessage(const char* msg) { strncpy(&this->Message[0], msg, sizeof(this->Message)); }

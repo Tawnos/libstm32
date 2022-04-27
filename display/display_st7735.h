@@ -472,7 +472,7 @@ namespace cmdc0de {
 	class DrawBufferNoBuffer : public FrameBuf {
 	public:
 		DrawBufferNoBuffer(DisplayDevice* d, uint16_t* optimizedFillBuf, uint8_t rowsForDrawBuffer, cmdc0de::PixelFormat pf = PixelFormat::TwelveBit)
-			: FrameBuf(d, optimizedFillBuf, d->getWidth()* d->getHeight(), pf),
+			: FrameBuf(d, optimizedFillBuf, d->getWidth()* d->getHeight(), d->getWidth(), d->getHeight(), pf),
 				RowsForDrawBuffer(rowsForDrawBuffer) { }
 		virtual ~DrawBufferNoBuffer() = default;
 		virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor& color);

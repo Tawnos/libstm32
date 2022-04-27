@@ -1,7 +1,8 @@
-#ifndef DCDARKNET_FRAMEBUF_H
-#define DCDARKNET_FRAMEBUF_H
+#pragma once
 
-#include "display_device.h"
+#include <rgbcolor.h>
+#include <cassert>
+#include <stdint.h>
 
 namespace cmdc0de
 {
@@ -70,29 +71,33 @@ namespace cmdc0de
   {
   public:
     virtual ~FrameBuf() = default;
-    virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h,
-      const RGBColor& color) = 0;
-    virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h,
-      const RGBColor& color) = 0;
-    virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w,
-      const RGBColor& color) = 0;
-    virtual bool drawPixel(uint16_t x0, uint16_t y0,
-      const RGBColor& color) = 0;
+    virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) = 0;
     virtual void drawImage(int16_t x, int16_t y, const DCImage& dc) = 0;
+    virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor& color) = 0;
+    virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) = 0;
+    virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) = 0;
     virtual void swap() = 0;
 
+  public:
+    void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color);
+
   protected:
-    FrameBuf(DisplayDevice* d, uint16_t* SPIBuffer, uint16_t bufferSize, PixelFormat pf)
+    FrameBuf(DisplayDevice* d, uint16_t* SPIBuffer, uint16_t bufferSize, uint8_t w, uint8_t h, PixelFormat pf)
       : Display(d),
       SPIBuffer(SPIBuffer),
       BufferSize(bufferSize),
       PixelFormat(pf),
-      MemoryAccessControl(1) /*1 is not valid*/ {}
+      MemoryAccessControl(1), /*1 is not valid*/
+      Width(w),
+      Height(h) {}
+
     uint16_t* SPIBuffer{ nullptr };
     uint16_t BufferSize{ 0 };
     DisplayDevice* Display{ nullptr };
     const PixelFormat PixelFormat{ PixelFormat::TwelveBit };
     uint8_t MemoryAccessControl{ 0 };
+    uint8_t Width{ cmdc0de::DISPLAY_WIDTH };
+    uint8_t Height{ cmdc0de::DISPLAY_HEIGHT };
 
     friend class DisplayDevice;
   };
@@ -120,72 +125,17 @@ namespace cmdc0de
 
   public:
     DrawBuffer2D16BitColor16BitPerPixel1Buffer(DisplayDevice* d, uint16_t* spiBuffer)
-      : FrameBuf(d, spiBuffer, d->getWidth()* d->getHeight(), PixelFormat::SixteenBit) {}
+      : FrameBuf(d, spiBuffer, cmdc0de::DISPLAY_WIDTH*cmdc0de::DISPLAY_HEIGHT, cmdc0de::DISPLAY_WIDTH, cmdc0de::DISPLAY_HEIGHT, PixelFormat::SixteenBit) {}
     virtual ~DrawBuffer2D16BitColor16BitPerPixel1Buffer() = default;
 
-    virtual bool drawPixel(uint16_t x, uint16_t y, const RGBColor& color) override;
-    virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) override;
-    virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) override;
-    virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) override;
-    virtual void swap();
-    virtual void drawImage(int16_t x, int16_t y, const DCImage& dc);
-
-  protected:
-    uint16_t calcLCDColor(const RGBColor& color);
-  };
-
-  /*
-   * @author cmdc0de
-   * @date 6/2/17
-   *
-   * 1 byte per pixel for backbuffer
-   * 3 bits Red, 2 Bits Green, 3 bits blue - color passed in is deresed from 565 to 323
-   * On each pixel write we track if we changed any pixel in rowsForDrawBuffer,
-   * if not on swap we skip those rows, otherwise write 2 bytes (565) to drawBuffer
-   * for the width of the screen for 'rowsForDrawBuffer' rows. flush to SPI bus then repeat until
-   * entire screen is rendered
-   */
-  class DrawBuffer2D16BitColor : public FrameBuf
-  {
-  public:
-    enum COLOR
-    { // 2/2/2
-      BLACK = 0,
-      RED_MASK = 0x30,
-      GREEN_MASK = 0xC,
-      BLUE_MASK = 0x3,
-      WHITE = 0x3F,
-      BITS_PER_PIXEL = 2
-    };
-
-  public:
-    DrawBuffer2D16BitColor(
-      DisplayDevice* d,
-      uint8_t* backBuffer,
-      uint16_t* spiBuffer,
-      uint8_t rowsForDrawBuffer,
-      uint8_t* drawBlocksBuffer
-    ) : FrameBuf(d, spiBuffer, d->getWidth()* d->getHeight(), PixelFormat::SixteenBit),
-      BackBuffer{ backBuffer, d->getWidth() * d->getHeight(), 6 },
-      RowsForDrawBuffer(rowsForDrawBuffer),
-      DrawBlocksChanged{ drawBlocksBuffer, d->getHeight() / rowsForDrawBuffer, 1 } {}
-
-    virtual ~DrawBuffer2D16BitColor() = default;
     virtual void drawImage(int16_t x, int16_t y, const DCImage& dc) override;
     virtual bool drawPixel(uint16_t x, uint16_t y, const RGBColor& color) override;
     virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) override;
     virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) override;
     virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) override;
-    virtual void swap() override;
+    virtual void swap();
 
   protected:
-    uint16_t calcLCDColor(uint8_t packedColor);
-    uint8_t deresColor(const RGBColor& color);
-
-  private:
-    BitArray BackBuffer{ nullptr,0,0 };
-    uint8_t RowsForDrawBuffer = 0;
-    BitArray DrawBlocksChanged{ nullptr,0,0 };
+    uint16_t calcLCDColor(const RGBColor& color);
   };
 }
-#endif

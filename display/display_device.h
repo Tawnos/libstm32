@@ -3,28 +3,20 @@
 #define DCDARKNET_DISPLAY_DEVICE_H
 
 #include "common.h"
-
+#include "art/images.h"
+#include "framebuf.h"
 #include "../error_type.h"
 #include "fonts.h"
 #include "../utility/bitarray.h"
-#include "../rgbcolor.h"
+#include <rgbcolor.h>
 #include <assert.h>
 #if !defined VIRTUAL_DEVICE
 #include "../utility/pin.h"
 #endif
+#include <common.h>
 
 namespace cmdc0de
 {
-  class FrameBuf;
-
-  struct DCImage
-  {
-    unsigned int width;
-    unsigned int height;
-    unsigned int bytes_per_pixel; /* 2:RGB16, 3:RGB, 4:RGBA */
-    const char* pixel_data;
-  };
-
   /*
    * @author cmdc0de
    * @date:  2/13/17
@@ -42,7 +34,7 @@ namespace cmdc0de
     virtual ~DisplayDevice() = default;
 
   public:
-    ErrorType init(FrameBuf* fb, const FontDef_t* font)
+    cmdc0de::ErrorType init(FrameBuf* fb, const FontDef_t* font)
     {
       FB = fb;
       CurrentFont = font;
@@ -128,7 +120,7 @@ namespace cmdc0de
     virtual void reset() = 0;
 
   protected:
-    virtual ErrorType onInit() { return ErrorType{}; };
+    virtual cmdc0de::ErrorType onInit() { return cmdc0de::ErrorType{}; };
     uint16_t Width{ cmdc0de::DISPLAY_WIDTH };
     uint16_t Height{ cmdc0de::DISPLAY_HEIGHT};
     RotationType RotationType : 3{cmdc0de::START_ROT};
