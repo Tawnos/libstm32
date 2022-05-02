@@ -3,6 +3,8 @@
 
 #include "../config.h"
 #include "../error_type.h"
+extern uint32_t HAL_GetTick();
+extern void HAL_Delay(uint32_t);
 
 namespace cmdc0de {
 

@@ -39,6 +39,7 @@ namespace cmdc0de {
     };
   public:
     virtual ~StateBase() = default;
+    ErrorType init();
     ReturnStateContext run();
     ErrorType shutdown();
   protected:
@@ -72,8 +73,6 @@ namespace cmdc0de {
     uint32_t timeInState() {
       return HAL_GetTick() - StateStartTime;
     }
-  private:
-    ErrorType init();
   private:
     uint32_t StateData : 8{0};
     uint32_t TimesRunCalledAllTime : 24{0};

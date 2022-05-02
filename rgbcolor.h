@@ -22,16 +22,21 @@ namespace cmdc0de {
   public:
     RGBColor(uint8_t r, uint8_t g, uint8_t b) : R(r), G(g), B(b) {
     }
-    RGBColor(const RGBColor& r) {
-      (*this) = r;
+    RGBColor(const RGBColor& r)
+    {
+       (*this) = r;
     }
-    constexpr uint16_t getR() const {
+    RGBColor(const uint16_t c)
+    {
+       (*this) = c;
+    }
+    constexpr uint8_t getR() const {
       return R;
     }
-    constexpr uint16_t getG() const {
+    constexpr uint8_t getG() const {
       return G;
     }
-    constexpr uint16_t getB() const {
+    constexpr uint8_t getB() const {
       return B;
     }
     RGBColor& operator=(const RGBColor& r) {
@@ -39,6 +44,14 @@ namespace cmdc0de {
       G = r.getG();
       B = r.getB();
       return *this;
+    }
+
+    RGBColor& operator=(const uint16_t c)
+    {
+       R = (c & 0b1111100000000000) >> 11 << 3;
+       G = (c & 0b0000011111100000) >> 5 << 2;
+       B = (c & 0b0000000000011111) >> 0 << 3 ;
+       return *this;
     }
     bool operator==(const RGBColor& r) const;
     bool operator!=(const RGBColor& r) const;
