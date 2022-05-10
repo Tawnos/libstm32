@@ -1,56 +1,38 @@
 #ifndef CMDC0DE_DISPLAY_MESSAGE_STATE_H
 #define CMDC0DE_DISPLAY_MESSAGE_STATE_H
 
-#include "state_base.h"
+#include "../../menus/darknet7_base_state.h"
 #include <string.h>
 #include <rgbcolor.h>
-#include <display_device.h>
+#include <error_type.h>
 
 namespace cmdc0de {
 
-   class DisplayDevice;
-
-   class DisplayMessageState : public StateBase
+   class DisplayMessageState : public Darknet7BaseState
    {
    public:
       static const uint16_t DEFAULT_TIME_IN_STATE = 3000;
    public:
+      using Darknet7BaseState::Darknet7BaseState;
       virtual ~DisplayMessageState() = default;
 
       void setMessage(const char* msg) { strncpy(&this->Message[0], msg, sizeof(this->Message)); }
       void setTimeInState(uint16_t t) { TimeInState = t; }
 
-      const StateBase* getNextState() const { return NextState; }
-      StateBase* getNextState() { return NextState; }
-      void setNextState(StateBase* b) { NextState = b; }
-
-      const DisplayDevice* getDisplay() const { return Display; }
-      DisplayDevice* getDisplay() { return Display; }
-      void setDisplay(DisplayDevice* dd) { Display = dd; }
+      const Darknet7BaseState* getNextState() const { return NextState; }
+      Darknet7BaseState* getNextState() { return NextState; }
+      void setNextState(Darknet7BaseState* b) { NextState = b; }
 
    protected:
-      virtual ErrorType onInit()
-      {
-         Display->fillScreen(RGBColor::BLACK);
-         return ErrorType();
-      }
+      virtual ErrorType onInit() override;
 
-      virtual ReturnStateContext onRun()
-      {
-         Display->drawString(0, 10, &this->Message[0], RGBColor::WHITE, RGBColor::BLACK, 1, true);
-         if (timeInState() > TimeInState)
-         { //|| kb.getLastKeyReleased() != QKeyboard::NO_PIN_SELECTED) {
-            return ReturnStateContext(getNextState());
-         }
-         return ReturnStateContext(this);
-      }
+      virtual Darknet7BaseState* onRun() override;
 
-      virtual ErrorType onShutdown() { return ErrorType(); }
+      virtual ErrorType onShutdown() override { return ErrorType(); }
    private:
       char Message[64]{ 0 };
       uint16_t TimeInState{ DEFAULT_TIME_IN_STATE };
-      StateBase* NextState{ 0 };
-      DisplayDevice* Display{ 0 };
+      Darknet7BaseState* NextState{ 0 };
    };
 
 

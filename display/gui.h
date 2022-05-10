@@ -31,7 +31,9 @@ namespace cmdc0de {
       TimeBetweenScroll(timeBetwenScrolls) { }
     GUIListItemData(uint8_t id, const char* msg) :
       id(id),
-      text(msg) { }
+      text(msg) {
+       setShouldScroll();
+    }
     GUIListItemData() {}
     void set(uint8_t n, const char* msg) {
       id = n;

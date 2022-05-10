@@ -4,9 +4,9 @@
 
 using namespace cmdc0de;
 
-StateBase::ReturnStateContext StateBase::run() {
+Darknet7BaseState*  StateBase::run() {
 	++TimesRunCalledAllTime;
-	ReturnStateContext sr(this);
+	Darknet7BaseState*  sr(this);
 	if (!hasBeenInitialized()) {
 		TimesRunCalledSinceLastReset = 0;
 		ErrorType et = init();
