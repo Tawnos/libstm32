@@ -23,7 +23,7 @@ static union {
 	struct {
 		uint8_t begin[LED_PER_HALF * 24];
 		uint8_t end[LED_PER_HALF * 24];
-	}__attribute__((packed));
+	};
 } LedDMA;
 
 cmdc0de::WS2818::WS2818(uint16_t ledPin, GPIO_TypeDef *ledPort, TIM_TypeDef *ledTimer,
