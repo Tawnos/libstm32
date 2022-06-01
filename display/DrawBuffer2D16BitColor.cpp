@@ -27,7 +27,8 @@ namespace cmdc0de {
     }
   }
 
-  void DrawBuffer2D16BitColor::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) {
+  void DrawBuffer2D16BitColor::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color)
+  {
     uint8_t c = deresColor(color);
     for (int i = y; i < (h + y); ++i) {
       BackBuffer.setValueAsByte(i * Display->getWidth() + x, c);

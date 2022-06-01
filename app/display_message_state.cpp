@@ -4,13 +4,13 @@
 
 cmdc0de::ErrorType cmdc0de::DisplayMessageState::onInit()
 {
-    darknet->getDisplay()->fillScreen(RGBColor::BLACK);
+    darknet->getGUI()->fillScreen(RGBColor::BLACK);
     return ErrorType();
 }
 
 Darknet7BaseState*  cmdc0de::DisplayMessageState::onRun()
 {
-    darknet->getDisplay()->drawString(0, 10, &this->Message[0], RGBColor::WHITE, RGBColor::BLACK, 1, true);
+    darknet->getGUI()->drawString(0, 10, &this->Message[0], RGBColor::WHITE, RGBColor::BLACK, 1, true);
     if (timeInState() > TimeInState)
     { //|| kb.getLastKeyReleased() != QKeyboard::NO_PIN_SELECTED) {
         return NextState;
