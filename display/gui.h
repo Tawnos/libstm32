@@ -2,8 +2,10 @@
 #define GUI_H
 
 #include <stdio.h>
-#include "display_device.h"
-#include "fonts.h"
+#include "framebuf.h"
+#include <art/images.h>
+#include <rgbcolor.h>
+#include <fonts/fonts.h>
 
 namespace cmdc0de {
 
@@ -112,9 +114,7 @@ namespace cmdc0de {
       {
          return font;
       }
-      void drawImage(uint16_t x, int16_t y, const DCImage& image) {
-         frameBuf->drawImage(x, y, image);
-      }
+      void drawImage(uint16_t x, int16_t y, const DCImage& image);
       void drawCharAtPosition(int16_t x, int16_t y, char c, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size) const;
       uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size, bool lineWrap) const;
       uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size, bool lineWrap, uint8_t charsToRender) const;

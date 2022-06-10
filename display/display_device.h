@@ -6,7 +6,7 @@
 #include "art/images.h"
 #include "framebuf.h"
 #include "../error_type.h"
-#include "fonts.h"
+#include <fonts/fonts.h>
 #include "../utility/bitarray.h"
 #include <rgbcolor.h>
 #include <assert.h>

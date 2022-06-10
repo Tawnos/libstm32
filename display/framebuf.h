@@ -3,6 +3,9 @@
 #include <rgbcolor.h>
 #include <cassert>
 #include <stdint.h>
+#include <art/images.h>
+#include <rgbcolor.h>
+#include <common.h>
 
 namespace cmdc0de
 {
@@ -93,29 +96,23 @@ namespace cmdc0de
          return Height;
       }
 
-
-
-
    protected:
       FrameBuf(DisplayDevice* d, uint16_t* SPIBuffer, uint16_t bufferSize, uint8_t w, uint8_t h, PixelFormat pf)
          : Display(d),
          SPIBuffer(SPIBuffer),
          BufferSize(bufferSize),
          PixelFormat(pf),
-         MemoryAccessControl(1), /*1 is not valid*/
          Width(w),
          Height(h)
-      {
-      }
+      {}
 
       uint16_t* SPIBuffer{ nullptr };
       uint16_t BufferSize{ 0 };
       DisplayDevice* Display{ nullptr };
       const PixelFormat PixelFormat{ PixelFormat::TwelveBit };
-      uint8_t MemoryAccessControl{ 0 };
+      uint8_t MemoryAccessControl{ 1 };  /*1 is not valid*/
       uint8_t Width{ cmdc0de::DISPLAY_WIDTH };
       uint8_t Height{ cmdc0de::DISPLAY_HEIGHT };
-
 
       friend class DisplayDevice;
    };

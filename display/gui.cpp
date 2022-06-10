@@ -1,4 +1,5 @@
 #include "gui.h"
+#include "framebuf.h"
 #include <cstdint>
 
 using namespace cmdc0de;
@@ -90,6 +91,10 @@ const char* GUIListItemData::getScrollOffset()
       offSet = LastScrollPosition;
    }
    return text + offSet;
+}
+void cmdc0de::GUI::drawImage(uint16_t x, int16_t y, const DCImage& image)
+{
+    frameBuf->drawImage(x, y, image);
 }
 void GUI::drawCharAtPosition(int16_t x, int16_t y, char c, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size) const
 {
