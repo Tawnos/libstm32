@@ -3,7 +3,7 @@
 namespace cmdc0de {
   bool DrawBuffer2D16BitColor::drawPixel(uint16_t x, uint16_t y, const RGBColor& color) {
     uint8_t c = deresColor(color);
-    BackBuffer.setValueAsByte((y * Display->getWidth()) + x, c);
+    BackBuffer.setValueAsByte((y * Width) + x, c);
     DrawBlocksChanged.setValueAsByte(y / RowsForDrawBuffer, 1);
     return true;
   }
@@ -19,7 +19,7 @@ namespace cmdc0de {
     uint8_t c = deresColor(color);
     for (int i = y; i < (h + y); ++i) {
       //OPTIMIZE THIS BY MAKING A SET RANGE IN BITARRAY
-      uint32_t offset = i * Display->getWidth();
+      uint32_t offset = i * Width;
       for (int j = 0; j < w; ++j) {
         BackBuffer.setValueAsByte(offset + x + j, c);
       }
@@ -31,14 +31,14 @@ namespace cmdc0de {
   {
     uint8_t c = deresColor(color);
     for (int i = y; i < (h + y); ++i) {
-      BackBuffer.setValueAsByte(i * Display->getWidth() + x, c);
+      BackBuffer.setValueAsByte(i * Width + x, c);
       DrawBlocksChanged.setValueAsByte(i / RowsForDrawBuffer, 1);
     }
   }
 
   void DrawBuffer2D16BitColor::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) {
     uint8_t c = deresColor(color);
-    uint32_t offset = y * Display->getWidth();
+    uint32_t offset = y * Width;
     for (int i = x; i < (x + w); ++i) {
       BackBuffer.setValueAsByte(offset + i, c);
     }
@@ -50,13 +50,12 @@ namespace cmdc0de {
   // if we did change something convert from our short hand notation to something the LCD will understand
   //	then send to LCD
   void DrawBuffer2D16BitColor::swap() {
-    for (int h = 0; h < Display->getHeight(); h++) {
+    for (int h = 0; h < Height; h++) {
       if ((DrawBlocksChanged.getValueAsByte(h / RowsForDrawBuffer)) != 0) {
-        for (int w = 0; w < Display->getWidth(); w++) {
+        for (int w = 0; w < Width; w++) {
           uint32_t SPIY = h % RowsForDrawBuffer;
-          SPIBuffer[(SPIY * Display->getWidth()) + w] = calcLCDColor(BackBuffer.getValueAsByte((h * Display->getWidth()) + w));
+          SPIBuffer[(SPIY * Width) + w] = calcLCDColor(BackBuffer.getValueAsByte((h * Width) + w));
         }
-        Display->update();
         /*if (h != 0 && (h % RowsForDrawBuffer == (RowsForDrawBuffer - 1))) {
           setAddrWindow(0, h - (RowsForDrawBuffer - 1), Width, h);
           writeNData((uint8_t*)&SPIBuffer[0], Width * RowsForDrawBuffer * sizeof(uint16_t));

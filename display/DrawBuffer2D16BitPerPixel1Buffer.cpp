@@ -4,7 +4,7 @@ namespace cmdc0de {
 
    bool DrawBuffer2D16BitPerPixel1Buffer::drawPixel(uint16_t x, uint16_t y, const RGBColor& color)
    {
-      SPIBuffer[(y * Display->getWidth()) + x] = calcLCDColor(color);
+      SPIBuffer[(y * Width) + x] = calcLCDColor(color);
       return true;
    }
 
@@ -50,7 +50,7 @@ namespace cmdc0de {
       for (int i = y; i < (h + y); ++i)
       {
          //OPTIMIZE THIS BY MAKING A SET RANGE IN BITARRAY
-         uint32_t offset = i * Display->getWidth();
+         uint32_t offset = i * Width;
          for (int j = 0; j < w; ++j)
          {
             SPIBuffer[offset + x + j] = c;
@@ -63,14 +63,14 @@ namespace cmdc0de {
       uint16_t c = calcLCDColor(color);
       for (int i = y; i < (h + y); ++i)
       {
-         SPIBuffer[i * Display->getWidth() + x] = c;
+         SPIBuffer[i * Width + x] = c;
       }
    }
 
    void DrawBuffer2D16BitPerPixel1Buffer::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color)
    {
       uint16_t c = calcLCDColor(color);
-      uint32_t offset = y * Display->getWidth();
+      uint32_t offset = y * Width;
       for (int i = x; i < (x + w); ++i)
       {
          SPIBuffer[offset + i] = c;
@@ -81,9 +81,9 @@ namespace cmdc0de {
    {
       if (/*anychange*/ 1)
       {
-         /*setAddrWindow(0, 0, Display->getWidth(), Display->getHeight());
+         /*setAddrWindow(0, 0, Width, Display->getHeight());
          writeNData((uint8_t*)&SPIBuffer[0], BufferSize);*/
-         Display->update();
+         //Display->update();
       }
    }
 

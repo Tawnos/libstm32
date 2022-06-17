@@ -31,15 +31,17 @@ namespace cmdc0de {
 
   public:
     DrawBuffer2D16BitColor(
-      DisplayDevice* d,
+       uint16_t bufferSize,
+       uint16_t* spiBuffer,
+       uint8_t width,
+       uint8_t height,
       uint8_t* backBuffer,
-      uint16_t* spiBuffer,
       uint8_t rowsForDrawBuffer,
       uint8_t* drawBlocksBuffer
-    ) : FrameBuf(d, spiBuffer, d->getWidth()* d->getHeight(), d->getWidth(), d->getHeight(), PixelFormat::SixteenBit),
-      BackBuffer{ backBuffer, d->getWidth() * d->getHeight(), 6 },
+    ) : FrameBuf(bufferSize, spiBuffer,  width, height, PixelFormat::SixteenBit),
+      BackBuffer{ backBuffer, bufferSize, 6 },
       RowsForDrawBuffer(rowsForDrawBuffer),
-      DrawBlocksChanged{ drawBlocksBuffer, d->getHeight() / rowsForDrawBuffer, 1 } {}
+      DrawBlocksChanged{ drawBlocksBuffer, height / rowsForDrawBuffer, 1 } {}
 
     virtual ~DrawBuffer2D16BitColor() = default;
     virtual void drawImage(int16_t x, int16_t y, const DCImage& dc) override;

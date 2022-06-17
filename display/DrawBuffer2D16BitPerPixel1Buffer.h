@@ -31,8 +31,8 @@ namespace cmdc0de
       };
 
    public:
-      DrawBuffer2D16BitPerPixel1Buffer(DisplayDevice* d, uint16_t* spiBuffer)
-         : FrameBuf(d, spiBuffer, cmdc0de::DISPLAY_WIDTH* cmdc0de::DISPLAY_HEIGHT, cmdc0de::DISPLAY_WIDTH, cmdc0de::DISPLAY_HEIGHT, PixelFormat::SixteenBit)
+      DrawBuffer2D16BitPerPixel1Buffer(uint16_t bufferSize, uint16_t* spiBuffer, uint8_t w, uint8_t h)
+         : FrameBuf(bufferSize, spiBuffer, w, h, PixelFormat::SixteenBit)
       {}
       virtual ~DrawBuffer2D16BitPerPixel1Buffer() = default;
 

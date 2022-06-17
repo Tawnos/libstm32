@@ -73,7 +73,6 @@ namespace cmdc0de
    class FrameBuf
    {
    public:
-      virtual ~FrameBuf() = default;
       virtual void swap() = 0;
 
       virtual void drawImage(int16_t x, int16_t y, const DCImage& dcImage) = 0;
@@ -97,9 +96,8 @@ namespace cmdc0de
       }
 
    protected:
-      FrameBuf(DisplayDevice* d, uint16_t* SPIBuffer, uint16_t bufferSize, uint8_t w, uint8_t h, PixelFormat pf)
-         : Display(d),
-         SPIBuffer(SPIBuffer),
+      FrameBuf(uint16_t bufferSize, uint16_t* SPIBuffer, uint8_t w, uint8_t h, PixelFormat pf)
+         : SPIBuffer(SPIBuffer),
          BufferSize(bufferSize),
          PixelFormat(pf),
          Width(w),
@@ -108,7 +106,6 @@ namespace cmdc0de
 
       uint16_t* SPIBuffer{ nullptr };
       uint16_t BufferSize{ 0 };
-      DisplayDevice* Display{ nullptr };
       const PixelFormat PixelFormat{ PixelFormat::TwelveBit };
       uint8_t MemoryAccessControl{ 1 };  /*1 is not valid*/
       uint8_t Width{ cmdc0de::DISPLAY_WIDTH };
