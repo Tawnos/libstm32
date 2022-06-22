@@ -22,7 +22,6 @@ namespace cmdc0de
     * @date:  2/13/17
     *
     * Base class for display devices
-    * 	not sure this is actually needed as you create an instance of the Display7735 class not this
     */
    class DisplayDevice
    {

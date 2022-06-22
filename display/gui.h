@@ -6,6 +6,8 @@
 #include <art/images.h>
 #include <rgbcolor.h>
 #include <fonts/fonts.h>
+#include <cstdint>
+#include <optional>
 
 namespace cmdc0de {
 
@@ -94,50 +96,25 @@ namespace cmdc0de {
    class GUI
    {
    public:
-      GUI(FrameBuf* frameBuf, const FontDef_t* font = &Font_6x10) :
+      GUI(FrameBuf* frameBuf, const FontDef_t* font) :
          frameBuf(frameBuf), font(font)
       {}
       bool init() { return true; }
       void drawTicker(GUITickerData* dt) const;
       uint8_t drawList(GUIListData* list) const;
 
-      void fillScreen(const RGBColor& color) const
+      void fillScreen(RGBColor color) const
       {
          frameBuf->fillRec(0, 0, frameBuf->getWidth(), frameBuf->getHeight(), color);
       }
-      void setTextColor(cmdc0de::RGBColor color)
-      {
-         CurrentTextColor = color;
-      }
 
-      const FontDef_t* getFont() const
-      {
-         return font;
-      }
       void drawImage(uint16_t x, int16_t y, const DCImage& image);
-      void drawCharAtPosition(int16_t x, int16_t y, char c, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size) const;
-      uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size, bool lineWrap) const;
-      uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size, bool lineWrap, uint8_t charsToRender) const;
+      void drawCharAtPosition(int16_t x, int16_t y, char c, RGBColor textColor, RGBColor bgColor) const;
+      uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, RGBColor textColor = RGBColor::WHITE, bool lineWrap = true, std::optional<uint8_t> charsToRender = std::nullopt) const;
 
-      uint32_t drawStringOnLine(uint8_t line, const char* msg) const
-      {
-         return drawString(0, font->FontHeight * line, msg, CurrentTextColor, CurrentBGColor, 1, true);
-      }
-
-      uint32_t drawString(uint16_t x, uint16_t y, const char* pt) const
-      {
-         return drawString(x, y, pt, CurrentTextColor);
-      }
-
-      uint32_t drawString(uint16_t x, uint16_t y, const char* pt, const RGBColor& textColor) const
-      {
-         return drawString(x, y, pt, textColor, CurrentBGColor, 1, false);
-      }
    private:
       FrameBuf* frameBuf;
       const FontDef_t* font;
-      RGBColor CurrentTextColor{ cmdc0de::RGBColor::WHITE };
-      RGBColor CurrentBGColor{ cmdc0de::RGBColor::BLACK };
    };
 
 }

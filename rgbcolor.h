@@ -30,6 +30,7 @@ namespace cmdc0de {
     {
        (*this) = c;
     }
+    
     constexpr uint8_t getR() const {
       return R;
     }
@@ -39,6 +40,8 @@ namespace cmdc0de {
     constexpr uint8_t getB() const {
       return B;
     }
+
+    operator uint16_t() { return (uint16_t)R << 11 | (G & 0b111111) << 5 | (B & 0b11111); }
     RGBColor& operator=(const RGBColor& r) {
       R = r.getR();
       G = r.getG();
@@ -70,22 +73,13 @@ namespace cmdc0de {
     static const RGB WHITE;
   public:
     RGB() {}
-    RGB(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness) : B(b), G(g), R(r), Brightness(brightness) {}
-    RGB(const RGB& r) : B(r.B), G(r.G), R(r.R), Brightness(r.Brightness) {}
-    RGB& operator=(const RGB& r) { B = r.B; G = r.G; R = r.R; Brightness = r.Brightness; return (*this); }
-    uint8_t getBlue() { return B; }
-    uint8_t getRed() { return R; }
-    uint8_t getGreen() { return G; }
-    uint8_t getBrightness() { return Brightness; }
-    void setBlue(uint8_t v) { B = v; }
-    void setRed(uint8_t v) { R = v; }
-    void setGreen(uint8_t v) { G = v; }
-    void setBrightness(uint8_t v) { Brightness = ((v > 100) ? 100 : v); }
+    RGB(uint8_t r, uint8_t g, uint8_t b) : B(b), G(g), R(r) {}
+    RGB(const RGB& r) : B(r.B), G(r.G), R(r.R) {}
+    RGB& operator=(const RGB& r) { B = r.B; G = r.G; R = r.R;  return (*this); }
   private:
     uint8_t B{ 0 };
     uint8_t G{ 0 };
     uint8_t R{ 0 };
-    uint8_t Brightness{ 100 };
   };
 #pragma pack(pop)
 

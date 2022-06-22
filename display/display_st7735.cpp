@@ -224,7 +224,7 @@ void DisplayST7735::drawCharAtPosition(int16_t x, int16_t y, char c, const RGBCo
 }
 
 uint32_t DisplayST7735::drawStringOnLine(uint8_t line, const char* msg) {
-	return drawString(0, getFont()->FontHeight * line, msg, RGBColor::WHITE, RGBColor::BLACK, 1, true);
+	return drawString(0, getFont()->FontHeight * line, msg);
 }
 
 uint32_t DisplayST7735::drawString(uint16_t x, uint16_t y, const char* pt) {

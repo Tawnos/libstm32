@@ -10,10 +10,10 @@
 using cmdc0de::RGB;
 using cmdc0de::RGBColor;
 
-const RGB RGB::WHITE(255,255,255,100);
-const RGB RGB::BLUE(0,0,255,100);
-const RGB RGB::GREEN(0,255,0,100);
-const RGB RGB::RED(255,0,0,100);
+const RGB RGB::WHITE(255,255,255);
+const RGB RGB::BLUE(0,0,255);
+const RGB RGB::GREEN(0,255,0);
+const RGB RGB::RED(255,0,0);
 
 const RGBColor RGBColor::BLACK(0, 0, 0);
 const RGBColor RGBColor::RED(255, 0, 0);

@@ -4,7 +4,6 @@
 #include <cassert>
 #include <stdint.h>
 #include <art/images.h>
-#include <rgbcolor.h>
 #include <common.h>
 
 namespace cmdc0de
@@ -27,7 +26,7 @@ namespace cmdc0de
       constexpr uint8_t getSize() { return SizeInBytes; }
 
    public:
-      static PackedColor create(PixelFormat pixelFormat, const RGBColor& c)
+      static PackedColor create(PixelFormat pixelFormat, RGBColor c)
       {
          PackedColor pc;
          switch (pixelFormat)
@@ -76,21 +75,19 @@ namespace cmdc0de
       virtual void swap() = 0;
 
       virtual void drawImage(int16_t x, int16_t y, const DCImage& dcImage) = 0;
-      virtual bool drawPixel(uint16_t x0, uint16_t y0, const RGBColor& color) = 0;
-      virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) = 0;
-      virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) = 0;
-      virtual void drawCharAtPosition(int16_t x, int16_t y, char c, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size) = 0;
-      virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w) = 0;
-      virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) = 0;
-      virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) = 0;
+      virtual bool drawPixel(uint16_t x0, uint16_t y0, RGBColor color) = 0;
+      virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, RGBColor color) = 0;
+      virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, RGBColor color);
+      virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, RGBColor color) = 0;
+      virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, RGBColor color) = 0;
 
-      constexpr uint8_t getWidth()const
+      constexpr uint8_t getWidth() const
       {
          return Width;
       }
 
 
-      constexpr uint8_t getHeight()const
+      constexpr uint8_t getHeight() const
       {
          return Height;
       }
@@ -106,10 +103,9 @@ namespace cmdc0de
 
       uint16_t* SPIBuffer{ nullptr };
       uint16_t BufferSize{ 0 };
-      const PixelFormat PixelFormat{ PixelFormat::TwelveBit };
-      uint8_t MemoryAccessControl{ 1 };  /*1 is not valid*/
-      uint8_t Width{ cmdc0de::DISPLAY_WIDTH };
-      uint8_t Height{ cmdc0de::DISPLAY_HEIGHT };
+      const PixelFormat PixelFormat{ PixelFormat::SixteenBit };
+      uint8_t Width;
+      uint8_t Height;
 
       friend class DisplayDevice;
    };

@@ -1,16 +1,7 @@
-#include "display_device.h"
 #include "framebuf.h"
-#include "../config.h"
-#include "../logger.h"
-#include "assert.h"
-#include "framebuf.h"
-#include <rgbcolor.h>
-#include <string.h>
-//#include <diag/Trace.h>
-#include <algorithm>
 namespace cmdc0de {
 
-   void FrameBuf::drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color)
+   void FrameBuf::drawRec(int16_t x, int16_t y, int16_t w, int16_t h, RGBColor color)
    {
       auto topRow = y >= Height
          ? Height - 1

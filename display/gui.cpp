@@ -1,6 +1,5 @@
 #include "gui.h"
 #include "framebuf.h"
-#include <cstdint>
 
 using namespace cmdc0de;
 
@@ -64,7 +63,7 @@ void GUI::drawTicker(GUITickerData* dt) const
    {
       shift = 0;
    }
-   drawString(dt->x, dt->y, dt->text + shift, dt->TextColor, dt->bg, dt->FontScalar, false);
+   drawString(dt->x, dt->y, dt->text + shift);
 }
 
 const char* GUIListItemData::getScrollOffset()
@@ -94,121 +93,86 @@ const char* GUIListItemData::getScrollOffset()
 }
 void cmdc0de::GUI::drawImage(uint16_t x, int16_t y, const DCImage& image)
 {
-    frameBuf->drawImage(x, y, image);
+   frameBuf->drawImage(x, y, image);
 }
-void GUI::drawCharAtPosition(int16_t x, int16_t y, char c, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size) const
+void GUI::drawCharAtPosition(int16_t x, int16_t y, char c, RGBColor textColor, RGBColor bgColor) const
 {
-   uint8_t line; // vertical column of pixels of character in font
-   int32_t i, j;
-   if ((x >= frameBuf->getWidth()) || // Clip right
-      (y >= frameBuf->getHeight()) || // Clip bottom
-      ((x + 5 * size - 1) < 0) || // Clip left
-      ((y + 8 * size - 1) < 0))   // Clip top
+   if (x >= frameBuf->getWidth() 
+    || y >= frameBuf->getHeight())
+      //|| x + font->FontWidth >= frameBuf->getWidth() 
+      //|| y + font->FontHeight >= frameBuf->getHeight())
    {
       return;
    }
 
-   for (i = 0; i < font->FontWidth; i++)
+
+   uint8_t maxCol = x + font->FontWidth < frameBuf->getWidth() ? font->FontWidth : frameBuf->getWidth() - x;
+   uint8_t maxRow = y + font->FontHeight < frameBuf->getHeight() ? font->FontHeight : frameBuf->getHeight() - y;
+   const uint16_t* fontData;
+
+   if (font->ByteOrder == FontByteOrder::Row)
    {
-      if (i == font->FontWidth - 1)
+      fontData = &font->data[(c - ' ') * (font->FontWidth-1)];
+      for (uint8_t i = 0; i < maxCol; i++)
       {
-         line = 0x0;
-      }
-      else
-      {
-         line = getFont()->data[(c * font->CharBytes) + i];
-      }
-      for (j = 0; j < 8; j++)
-      {
-         if (line & 0x1)
+         auto pixelCol = fontData[i];
+
+         for (auto j = 0; j < maxRow; j++)
          {
-            if (size == 1) // default size
+            auto color = (pixelCol & 0x1) ? textColor : bgColor;
+            if (i == maxCol - 1)
             {
-               frameBuf->drawPixel(x + i, y + j, textColor);
+               color = bgColor;
             }
-            else
-            {  // big size
-              frameBuf->fillRec(x + (i * size), y + (j * size), size, size, textColor);
-            }
+            frameBuf->drawPixel(x + i, y + j, color);
+            pixelCol >>= 1;
          }
-         else if (bgColor != textColor)
+      }
+   }
+   else if (font->ByteOrder == FontByteOrder::Column)
+   {
+      fontData = &font->data[(c - ' ') * font->FontHeight];
+      for (uint8_t i = 0; i < maxRow; i++)
+      {
+         auto pixelRow = fontData[i];
+         auto mask = 0x8000;
+         for (auto j = 0; j < maxCol; j++)
          {
-            if (size == 1) // default size
-            {
-               frameBuf->drawPixel(x + i, y + j, bgColor);
-            }
-            else // big size
-            {
-              frameBuf->fillRec(x + i * size, y + j * size, size, size, bgColor);
-            }
+            auto color = (pixelRow & mask) ? textColor : bgColor;
+            frameBuf->drawPixel(x + j, y + i, color);
+            mask >>= 1;
          }
-         line >>= 1;
       }
    }
 }
 
-uint32_t GUI::drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& backGroundColor, uint8_t size, bool lineWrap) const
+uint32_t GUI::drawString(uint16_t xPos, uint16_t yPos, const char* pt, RGBColor textColor, bool lineWrap, std::optional<uint8_t> charsToRender) const
 {
-   uint16_t currentX = xPos;
-   uint16_t currentY = yPos;
    const char* orig = pt;
 
-   while (*pt)
+   auto MaxVisibleCharsPerRow = frameBuf->getWidth() / font->FontWidth;
+   auto MaxVisibleRows = frameBuf->getHeight() / font->FontHeight;
+   auto remaining = charsToRender.value_or(MaxVisibleCharsPerRow * MaxVisibleRows);
+   while (*pt && remaining--)
    {
-      if ((currentX > frameBuf->getWidth() && !lineWrap) || currentY > frameBuf->getHeight())
+      if ((xPos > frameBuf->getWidth() && !lineWrap) || yPos > frameBuf->getHeight())
       {
          return pt - orig;
       }
-      else if (currentX > frameBuf->getWidth() && lineWrap)
-      {
-         currentX = 0;
-         currentY += font->FontHeight * size;
-         drawCharAtPosition(currentX, currentY, *pt, textColor, backGroundColor, size);
-         currentX += font->FontWidth;
-      }
       else if (*pt == '\n' || *pt == '\r')
       {
-         currentY += font->FontHeight * size;
-         currentX = 0;
+         xPos = 0;
+         yPos += font->FontHeight;
       }
       else
       {
-         drawCharAtPosition(currentX, currentY, *pt, textColor, backGroundColor, size);
-         currentX += font->FontWidth * size;
-      }
-      pt++;
-   }
-   return (pt - orig);  // number of characters printed
-}
-
-uint32_t GUI::drawString(uint16_t xPos, uint16_t yPos, const char* pt, const RGBColor& textColor, const RGBColor& backGroundColor, uint8_t size, bool lineWrap, uint8_t charsToRender) const
-{
-   uint16_t currentX = xPos;
-   uint16_t currentY = yPos;
-   const char* orig = pt;
-
-   while (charsToRender-- && *pt)
-   {
-      if ((currentX > frameBuf->getWidth() && !lineWrap) || currentY > frameBuf->getHeight())
-      {
-         return pt - orig;
-      }
-      else if (currentX > frameBuf->getWidth() && lineWrap)
-      {
-         currentX = 0;
-         currentY += font->FontHeight * size;
-         drawCharAtPosition(currentX, currentY, *pt, textColor, backGroundColor, size);
-         currentX += font->FontWidth;
-      }
-      else if (*pt == '\n' || *pt == '\r')
-      {
-         currentY += font->FontHeight * size;
-         currentX = 0;
-      }
-      else
-      {
-         drawCharAtPosition(currentX, currentY, *pt, textColor, backGroundColor, size);
-         currentX += font->FontWidth * size;
+         if (xPos > frameBuf->getWidth() && lineWrap)
+         {
+            xPos = 0;
+            yPos += font->FontHeight;
+         }
+         drawCharAtPosition(xPos, yPos, *pt, textColor, RGBColor::BLACK);
+         xPos += font->FontWidth;
       }
       pt++;
    }
@@ -227,7 +191,7 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
    uint8_t rx = gui_CurList->x + 4;
    if (gui_CurList->header != 0)
    {
-      drawString(rx, ry, gui_CurList->header, RGBColor::WHITE, RGBColor::BLACK, 1, false);
+      drawString(rx, ry, gui_CurList->header);
       ry += font->FontHeight;
    }
 
@@ -240,11 +204,11 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
       {
          if (i != gui_CurList->selectedItem)
          {
-            drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].text, RGBColor::WHITE, RGBColor::BLACK, 1, false);
+            drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].text);
          }
          else
          {
-            drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE, 1, false);
+            drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset());
          }
       }
    }
@@ -257,11 +221,11 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
          {
             if (i != gui_CurList->selectedItem)
             {
-               drawString(rx, ry + (i - gui_CurList->ItemsCount + maxC) * font->FontHeight, gui_CurList->items[i].text, RGBColor::WHITE, RGBColor::BLACK, 1, false);
+               drawString(rx, ry + (i - gui_CurList->ItemsCount + maxC) * font->FontHeight, gui_CurList->items[i].text);
             }
             else
             {
-               drawString(rx, ry + (i - gui_CurList->ItemsCount + maxC) * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE, 1, false);
+               drawString(rx, ry + (i - gui_CurList->ItemsCount + maxC) * font->FontHeight, gui_CurList->items[i].getScrollOffset());
             }
          }
       }
@@ -271,11 +235,11 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
          {
             if (i != gui_CurList->selectedItem)
             {
-               drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].text, RGBColor::WHITE, RGBColor::BLACK, 1, false);
+               drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].text);
             }
             else
             {
-               drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE, 1, false);
+               drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset());
             }
          }
       }
@@ -285,11 +249,11 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
          {
             if (i != gui_CurList->selectedItem)
             {
-               drawString(rx, ry + (i - gui_CurList->selectedItem + maxC / 2) * font->FontHeight, gui_CurList->items[i].text, RGBColor::WHITE, RGBColor::BLACK, 1, false);
+               drawString(rx, ry + (i - gui_CurList->selectedItem + maxC / 2) * font->FontHeight, gui_CurList->items[i].text);
             }
             else
             {
-               drawString(rx, ry + (i - gui_CurList->selectedItem + maxC / 2) * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE, 1, false);
+               drawString(rx, ry + (i - gui_CurList->selectedItem + maxC / 2) * font->FontHeight, gui_CurList->items[i].getScrollOffset());
             }
          }
       }

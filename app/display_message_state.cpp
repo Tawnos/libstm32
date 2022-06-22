@@ -10,7 +10,7 @@ cmdc0de::ErrorType cmdc0de::DisplayMessageState::onInit()
 
 Darknet7BaseState*  cmdc0de::DisplayMessageState::onRun()
 {
-    darknet->getGUI()->drawString(0, 10, &this->Message[0], RGBColor::WHITE, RGBColor::BLACK, 1, true);
+    darknet->getGUI()->drawString(0, 10, &this->Message[0]);
     if (timeInState() > TimeInState)
     { //|| kb.getLastKeyReleased() != QKeyboard::NO_PIN_SELECTED) {
         return NextState;

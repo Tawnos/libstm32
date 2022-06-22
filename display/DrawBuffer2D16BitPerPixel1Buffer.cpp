@@ -2,9 +2,13 @@
 
 namespace cmdc0de {
 
-   bool DrawBuffer2D16BitPerPixel1Buffer::drawPixel(uint16_t x, uint16_t y, const RGBColor& color)
+   bool DrawBuffer2D16BitPerPixel1Buffer::drawPixel(uint16_t x, uint16_t y, RGBColor color)
    {
-      SPIBuffer[(y * Width) + x] = calcLCDColor(color);
+      if (x >= Width || y >= Height)
+      {
+         return false;
+      }
+      SPIBuffer[(y * Width) + x] = color;
       return true;
    }
 
@@ -44,36 +48,33 @@ namespace cmdc0de {
 #endif
    }
 
-   void DrawBuffer2D16BitPerPixel1Buffer::fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color)
+   void DrawBuffer2D16BitPerPixel1Buffer::fillRec(int16_t x, int16_t y, int16_t w, int16_t h, RGBColor color)
    {
-      uint16_t c = calcLCDColor(color);
       for (int i = y; i < (h + y); ++i)
       {
          //OPTIMIZE THIS BY MAKING A SET RANGE IN BITARRAY
          uint32_t offset = i * Width;
          for (int j = 0; j < w; ++j)
          {
-            SPIBuffer[offset + x + j] = c;
+            SPIBuffer[offset + x + j] = color;
          }
       }
    }
 
-   void DrawBuffer2D16BitPerPixel1Buffer::drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color)
+   void DrawBuffer2D16BitPerPixel1Buffer::drawVerticalLine(int16_t x, int16_t y, int16_t h, RGBColor color)
    {
-      uint16_t c = calcLCDColor(color);
       for (int i = y; i < (h + y); ++i)
       {
-         SPIBuffer[i * Width + x] = c;
+         SPIBuffer[i * Width + x] = color;
       }
    }
 
-   void DrawBuffer2D16BitPerPixel1Buffer::drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color)
+   void DrawBuffer2D16BitPerPixel1Buffer::drawHorizontalLine(int16_t x, int16_t y, int16_t w, RGBColor color)
    {
-      uint16_t c = calcLCDColor(color);
       uint32_t offset = y * Width;
       for (int i = x; i < (x + w); ++i)
       {
-         SPIBuffer[offset + i] = c;
+         SPIBuffer[offset + i] = color;
       }
    }
 
@@ -86,24 +87,4 @@ namespace cmdc0de {
          //Display->update();
       }
    }
-
-   uint16_t DrawBuffer2D16BitPerPixel1Buffer::calcLCDColor(const RGBColor& color)
-   {
-      uint8_t redBits = color.getR() >> 3; //keep it in 5 bits
-      uint8_t greenBits = color.getG() >> 2; //keep it in 6 bits
-      uint8_t blueBits = color.getB() >> 3; //keep it in 5 bits
-
-      return redBits << 11
-         | greenBits << 5
-         | blueBits;
-   }
-
-   void cmdc0de::DrawBuffer2D16BitPerPixel1Buffer::drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color)
-   {}
-
-   void cmdc0de::DrawBuffer2D16BitPerPixel1Buffer::drawCharAtPosition(int16_t x, int16_t y, char c, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size)
-   {}
-
-   void cmdc0de::DrawBuffer2D16BitPerPixel1Buffer::drawHorizontalLine(int16_t x, int16_t y, int16_t w)
-   {}
 }

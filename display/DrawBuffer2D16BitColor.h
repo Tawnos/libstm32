@@ -30,30 +30,26 @@ namespace cmdc0de {
     };
 
   public:
-    DrawBuffer2D16BitColor(
-       uint16_t bufferSize,
-       uint16_t* spiBuffer,
-       uint8_t width,
-       uint8_t height,
-      uint8_t* backBuffer,
-      uint8_t rowsForDrawBuffer,
-      uint8_t* drawBlocksBuffer
-    ) : FrameBuf(bufferSize, spiBuffer,  width, height, PixelFormat::SixteenBit),
-      BackBuffer{ backBuffer, bufferSize, 6 },
-      RowsForDrawBuffer(rowsForDrawBuffer),
-      DrawBlocksChanged{ drawBlocksBuffer, height / rowsForDrawBuffer, 1 } {}
+     DrawBuffer2D16BitColor(
+        const uint16_t bufferSize,
+        uint16_t* spiBuffer,
+        const uint8_t width,
+        const uint8_t height
+     ) : FrameBuf(bufferSize, spiBuffer, width, height, PixelFormat::SixteenBit)
+     {
+     }
 
     virtual ~DrawBuffer2D16BitColor() = default;
     virtual void drawImage(int16_t x, int16_t y, const DCImage& dc) override;
-    virtual bool drawPixel(uint16_t x, uint16_t y, const RGBColor& color) override;
-    virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) override;
-    virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) override;
-    virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) override;
+    virtual bool drawPixel(uint16_t x, uint16_t y, RGBColor color) override;
+    virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, RGBColor color) override;
+    virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, RGBColor color) override;
+    virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, RGBColor color) override;
     virtual void swap() override;
 
   protected:
     uint16_t calcLCDColor(uint8_t packedColor);
-    uint8_t deresColor(const RGBColor& color);
+    uint8_t deresColor(RGBColor color);
 
   private:
     BitArray BackBuffer{ nullptr,0,0 };

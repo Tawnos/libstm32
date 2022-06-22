@@ -37,18 +37,10 @@ namespace cmdc0de
       virtual ~DrawBuffer2D16BitPerPixel1Buffer() = default;
 
       virtual void drawImage(int16_t x, int16_t y, const DCImage& dc) override;
-      virtual bool drawPixel(uint16_t x, uint16_t y, const RGBColor& color) override;
-      virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, const RGBColor& color) override;
-      virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, const RGBColor& color) override;
-      virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) override;
-      virtual void swap();
-
-   protected:
-      uint16_t calcLCDColor(const RGBColor& color);
-
-      // Inherited via FrameBuf
-      virtual void drawRec(int16_t x, int16_t y, int16_t w, int16_t h, const RGBColor& color) override;
-      virtual void drawCharAtPosition(int16_t x, int16_t y, char c, const RGBColor& textColor, const RGBColor& bgColor, uint8_t size) override;
-      virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w) override;
+      virtual bool drawPixel(uint16_t x, uint16_t y, RGBColor color) override;
+      virtual void drawVerticalLine(int16_t x, int16_t y, int16_t h, RGBColor color) override;
+      virtual void drawHorizontalLine(int16_t x, int16_t y, int16_t w, RGBColor color) override;
+      virtual void fillRec(int16_t x, int16_t y, int16_t w, int16_t h, RGBColor color) override;
+      virtual void swap() override;
    };
 }
