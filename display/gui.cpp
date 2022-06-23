@@ -146,14 +146,13 @@ void GUI::drawCharAtPosition(int16_t x, int16_t y, char c, RGBColor textColor, R
    }
 }
 
-uint32_t GUI::drawString(uint16_t xPos, uint16_t yPos, const char* pt, RGBColor textColor, bool lineWrap, std::optional<uint8_t> charsToRender) const
+uint32_t GUI::drawString(uint16_t xPos, uint16_t yPos, const char* pt, RGBColor textColor, RGBColor bgColor, bool lineWrap) const
 {
    const char* orig = pt;
 
    auto MaxVisibleCharsPerRow = frameBuf->getWidth() / font->FontWidth;
    auto MaxVisibleRows = frameBuf->getHeight() / font->FontHeight;
-   auto remaining = charsToRender.value_or(MaxVisibleCharsPerRow * MaxVisibleRows);
-   while (*pt && remaining--)
+   while (*pt)
    {
       if ((xPos > frameBuf->getWidth() && !lineWrap) || yPos > frameBuf->getHeight())
       {
@@ -171,7 +170,7 @@ uint32_t GUI::drawString(uint16_t xPos, uint16_t yPos, const char* pt, RGBColor 
             xPos = 0;
             yPos += font->FontHeight;
          }
-         drawCharAtPosition(xPos, yPos, *pt, textColor, RGBColor::BLACK);
+         drawCharAtPosition(xPos, yPos, *pt, textColor, bgColor);
          xPos += font->FontWidth;
       }
       pt++;
@@ -208,7 +207,7 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
          }
          else
          {
-            drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset());
+            drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE);
          }
       }
    }
@@ -225,7 +224,7 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
             }
             else
             {
-               drawString(rx, ry + (i - gui_CurList->ItemsCount + maxC) * font->FontHeight, gui_CurList->items[i].getScrollOffset());
+               drawString(rx, ry + (i - gui_CurList->ItemsCount + maxC) * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE);
             }
          }
       }
@@ -239,7 +238,7 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
             }
             else
             {
-               drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset());
+               drawString(rx, ry + i * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE);
             }
          }
       }
@@ -253,7 +252,7 @@ uint8_t GUI::drawList(GUIListData* gui_CurList) const
             }
             else
             {
-               drawString(rx, ry + (i - gui_CurList->selectedItem + maxC / 2) * font->FontHeight, gui_CurList->items[i].getScrollOffset());
+               drawString(rx, ry + (i - gui_CurList->selectedItem + maxC / 2) * font->FontHeight, gui_CurList->items[i].getScrollOffset(), RGBColor::BLACK, RGBColor::WHITE);
             }
          }
       }

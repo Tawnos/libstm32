@@ -110,7 +110,7 @@ namespace cmdc0de {
 
       void drawImage(uint16_t x, int16_t y, const DCImage& image);
       void drawCharAtPosition(int16_t x, int16_t y, char c, RGBColor textColor, RGBColor bgColor) const;
-      uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, RGBColor textColor = RGBColor::WHITE, bool lineWrap = true, std::optional<uint8_t> charsToRender = std::nullopt) const;
+      uint32_t drawString(uint16_t xPos, uint16_t yPos, const char* pt, RGBColor textColor = RGBColor::WHITE, RGBColor bgColor = RGBColor::BLACK, bool lineWrap = true) const;
 
    private:
       FrameBuf* frameBuf;
