@@ -29,7 +29,7 @@ namespace cmdc0de
       DisplayDevice(uint16_t w, uint16_t h, RotationType r, FrameBuf* fb)
          : Width(w), Height(h), RotationType(r), RefreshTopToBot(0), FB(fb)
       {}
-      virtual ~DisplayDevice() = default;
+      virtual ~DisplayDevice() { delete FB; }
 
    public:
       constexpr uint16_t getWidth() const { return Width; }
